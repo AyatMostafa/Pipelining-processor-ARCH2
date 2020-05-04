@@ -9,6 +9,8 @@ ENTITY RamPipelined IS
 PORT (clk : IN std_logic;
 we : IN std_logic;
 re : IN std_logic;
+reset : IN std_logic;
+interrupt : IN std_logic;
 address : IN integer;
 datain : IN std_logic_vector(15 DOWNTO 0);
 dataout : OUT std_logic_vector(15 DOWNTO 0) );
@@ -50,7 +52,15 @@ BEGIN
 
 IF rising_edge(clk) THEN
 
-  IF we = '1' THEN
+  IF reset='1' THEN
+     
+     dataout <= ram(0);
+
+  elsif interrupt ='1' THEN
+
+      dataout <= ram(2);
+
+  elsIF we = '1' THEN
 
      ram(address) <= datain;
 
