@@ -47,6 +47,8 @@ begin
 				controlSignals <= "00100000";  
 			elsif (opcode = "00010") or (opcode = "00110") or  (opcode = "00111") or (opcode = "11100")or (opcode = "11101") or  (opcode = "11110") then 
 				controlSignals <= "01000000";--idd shl shr ldm  ldd sdd
+				if(opcode = "11101") or (opcode = "11110") then
+					controlSignals2(1) <= "1";
 			elsif (opcode = "11000") then 
 				controlSignals <= "11010100";--push
 				controlSignals2(10) <= "1";
@@ -80,8 +82,8 @@ begin
 			elsif (opcode = "10101") then 
 				controlSignals <= "00011000";--reti--
 				controlSignals2(4) <= "1";
-			elsif (opcode = "00010") or (opcode = "00110")then 
-				controlSignals <= "11000010"; --iadd shl--
+			elsif (opcode = "00010") or (opcode = "00110")or (opcode = "00111")then 
+				controlSignals <= "11000010"; --iadd shl shr--
 			elsif (opcode = "11100") then 
 				controlSignals <= "11001011"; --ldm--	
 			elsif (opcode = "11101") or (opcode = "11110")then 
