@@ -18,7 +18,7 @@ entity FetchStage is
 	  PC : Out std_logic_vector(31 downto 0);
 	  IsBranch : out std_logic;
 	  Prediction: out std_logic_vector(1 downto 0);
-	  stall, Reset : out std_logic
+	  stall: out std_logic
 	);
 end FetchStage;
 
@@ -43,5 +43,11 @@ begin
 	memory : ENTITY work.InstrMemory PORT MAP(PC_out, address_for_p, WE_P, CLK, new_state_p, IR_out);
 
 	control_branch : ENTITY work.ControlBranch Port Map(IR_out, Clk, istaken, ifJz, PC_decode);
-
+	
+	IR <= IR_out;
+	Imm_value <= IR_out;
+	PC <= PC_out;
+	ISBranch <= istaken Or ifJz;
+	stall <= stall_hazard;
+	
 end arch_fetch;
