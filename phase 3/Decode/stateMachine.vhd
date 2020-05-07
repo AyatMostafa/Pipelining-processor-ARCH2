@@ -1,12 +1,11 @@
-
---Reham ass3
 Library ieee;
 use ieee.std_logic_1164.all;
 
 entity stateMachine is
     port ( input: in std_logic_vector(1 downto 0);
             clk,rst: in std_logic;
-            output: in std_logic_vector(1 downto 0);
+            output: in std_logic_vector(1 downto 0)
+	);
     end entity;
 
 Architecture SM of stateMachine is
