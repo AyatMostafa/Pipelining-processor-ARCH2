@@ -7,8 +7,8 @@ Architecture Test of tbMachine is
     Signal s_clk,s_rst : std_logic := '1';
     Signal s_input,s_output : std_logic_vector(1 downto 0);
     constant CLK_PERIOD : time := 200 ps;
-    Signal test_output : std_logic_vector(13 downto 0) :=  "00011110011000";
-    Signal test_input  : std_logic_vector(13 downto 0) := "00010001100000";
+    Signal test_output : std_logic_vector(11 downto 0) :=  "001001000100";
+    Signal test_input  : std_logic_vector(11 downto 0) :=  "001010110100";
 
 begin
     SM: entity work.stateMachine port map ( s_input,s_clk,s_rst,s_output);
@@ -20,17 +20,17 @@ process
     end process;
 
 process 
+	variable i : integer;
     begin 
     s_rst <= '1';
     wait for CLK_PERIOD;
     s_rst <= '0';
-
-    for i in 0 to test_input'length-1 loop
-            s_input<=test_input(i downto i-1);
+	i := 1;
+    while i < test_input'length loop
+        s_input<=test_input(i downto i-1);
         wait for CLK_PERIOD;
-        assert (s_output=test_output(i-1)) report "error in machine output" severity error;
-	i:= i + 1;
---        wait for CLK_PERIOD;
+        assert (s_output=test_output(i downto i-1)) report "error in machine output" severity error;
+		i := i + 2;
     end loop;
     s_rst <= '1';
     s_input<="11";
