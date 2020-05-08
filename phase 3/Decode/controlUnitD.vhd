@@ -1,16 +1,17 @@
- library ieee;
+library ieee;
 use IEEE.std_logic_unsigned.all;
 use IEEE.std_logic_arith.all;
 use ieee.std_logic_1164.all;
 
+--controlSignals(DE,FE,)
 entity ControlUnit is 
 	port(
 		opcode          :  in std_logic_vector(15 downto 0);
 		IfBranch        :  in std_logic;
-		Clk				:  in std_logic;
-		rst				:  in std_logic;
-		stall           :  out std_logic;
-		FetchEnable     :  out std_logic;
+		Clk		:  in std_logic;
+		rst		:  in std_logic;
+		--stall           :  out std_logic;
+		FetchEnable     :  out std_logic :='0';
 		controlSignals2 :  out std_logic_vector(11 downto 0) :="000000000000";
 		controlSignals  :  out std_logic_vector(7 downto 0)
 	);
@@ -26,7 +27,9 @@ begin
 	process(Clk)
 	begin 
 		if rising_edge(clk) then 
-			if (opcode = "00010")or (opcode = "00110")or(opcode = "00111")or(opcode = "11100")or (opcode = "11101")or(opcode = "11110") then--iadd shl  shr ldm ldd sdd
+			if(IfBranch = '1') then
+				output<="11";
+			if (opcode = "00010")or (opcode = "00110")or(opcode = "00111")or(opcode = "11100")or (opcode = "11101")or(opcode = "11110")or(opcode = "00000") then--swap iadd shl  shr ldm ldd sdd
 				input<="01";		
 			elsif  (opcode = "10100")or (opcode = "10101") or (opcode = "10111")then --ret reti intrupt
 				input<="10";			
@@ -48,7 +51,8 @@ begin
 			elsif (opcode = "00001") or (opcode = "00011") or  (opcode = "00100") or (opcode = "00101") then --add sub and or 
 				controlSignals <= "11100010";
 			elsif (opcode = "00000") then --swap
-				controlSignals <= "00100000";  
+				controlSignals <= "00100000";
+				FetchEnable<='1';  
 			elsif (opcode = "00010") or (opcode = "00110") or  (opcode = "00111") or (opcode = "11100")or (opcode = "11101") or  (opcode = "11110") then 
 				controlSignals <= "01000000";--idd shl shr ldm  ldd sdd
 				if(opcode = "11101") or (opcode = "11110") then
