@@ -9,7 +9,7 @@ entity stateMachine is
     end entity;
 
 Architecture SM of stateMachine is
-    type states is (S0,S1,S2,S3);
+    type states is (S0,S1,S2,S3,s4);
     signal current_state : states := S0;
 
 begin
@@ -24,6 +24,8 @@ begin
                     output <= "01";
                 when S3 =>
                     output <= "10";
+		when S4 =>
+                    output <= "11";
                     
             end case;
         end process;
@@ -37,15 +39,17 @@ begin
                 case current_state is
                     when S0 =>
                         if input = "00" then current_state <= S0; 
-						elsif input = "01" then current_state <= S1; 
-						elsif input = "10" then current_state <= S2; 
-						end if;
+			elsif input = "01" then current_state <= S1; 
+			elsif input = "10" then current_state <= S2; 
+			end if;
                     when S1 =>
                         current_state <= S0;
                     when S2 =>
                         current_state <= S3; 
                     when S3 =>
-                        current_state <= S0; 
+                        current_state <= S4;
+                    when S4 =>
+                        current_state <= S0;  
                 end case;
               end if;
             end process;
