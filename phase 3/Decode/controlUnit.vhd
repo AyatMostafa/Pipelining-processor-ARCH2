@@ -3,7 +3,8 @@ use IEEE.std_logic_unsigned.all;
 use IEEE.std_logic_arith.all;
 use ieee.std_logic_1164.all;
 
---controlSignals(DE,FE,)
+--controlSignals(DE,FE,ALUsrc,SP,MR,MW,RW,memtoreg)
+--controlSignals2(int,push,(call),in,out,ret,ints2,rti,swap,fromEA,EaH,ints3)
 entity controlUnit is 
 	port(
 		opcode          :  in std_logic_vector(4 downto 0);
@@ -43,7 +44,9 @@ begin
 	begin 
 		controlSignals2 <= "000000000000"; 
 		FetchEnable<='0';
-		if(IfBranch = '1') then
+		if(rst = '1') then
+			controlSignals <= "00000000"; 	
+		elsif(IfBranch = '1') then
 			controlSignals <= "11000000"; 	
 		elsif(output = "00") then
 			if (opcode = "01000") then --nop
@@ -117,7 +120,7 @@ begin
 			end if;
 
 		elsif (opcode = "11") then
-			controlSignals <= "00000000";
+			controlSignals <= "11000000";
 		end if;
 	
 	end process; 
