@@ -66,7 +66,8 @@ use IEEE.std_logic_arith.all;
 Entity ALU is
 	port( src1, src2: IN std_logic_vector(31 downto 0);
 	      opCode: IN std_logic_vector(4 downto 0);
-	      Swap, Interrupt, RST: IN std_logic;
+	      Swap, SpMinus2, fromMem, RST: IN std_logic;
+	      flags : IN std_logic_vector(2 downto 0);
 	      output: OUT std_logic_vector(31 downto 0);
 	      CCRValue: OUT std_logic_vector(2 downto 0));
 End ALU;
@@ -79,7 +80,7 @@ Begin
 	--ALU main functionality
 	shift_L: entity work.shift port map (src1, src2, '0', shiftleft,  SHLCarry);
 	shift_R: entity work.shift port map (src1, src2, '1', shiftright, SHRCarry);
-	process (opCode, Swap, RST, src1, src2, Interrupt, SHLCarry, SHRCarry, shiftleft, shiftright)
+	process (opCode, Swap, RST, src1, src2,SpMinus2, SHLCarry, SHRCarry, shiftleft, shiftright)
 	variable operation: unsigned (4 downto 0);
 	variable Arith: std_logic_vector(32 downto 0);
 	constant One: std_logic_vector(31 downto 0) := "00000000000000000000000000000001";
@@ -87,14 +88,15 @@ Begin
 	begin
 		result <= ONE;
 		operation := unsigned(opCode);
-		if Interrupt = '1' then result <= unsigned(src1) - unsigned(Two);
-		elsif RST = '1' then CCRValue(2) <= '0';
+		if SpMinus2 = '1' then result <= unsigned(src1) - unsigned(Two);   --intS2, intS3, Call, Push
+		elsif RST = '1' then CCRValue(2) <= '0'; elsif fromMem ='1' then CCRValue(2) <= flags(2);
 		elsif operation = 0 then if Swap = '0' then result <= src1; else result <= src2; end if;     --SWAP
-		elsif operation = 1 or operation = 2 then
-			 Arith := unsigned(src1(31)&src1) + unsigned(src2(31)&src2); --ADD, IADD
+		elsif operation = 1 or operation = 2 then                                                    --ADD, IADD
+			 Arith := unsigned(src1(31)&src1) + unsigned(src2(31)&src2); 
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);	
-		elsif operation = 3 then Arith := unsigned(src1(31)&src1) - unsigned(src2(31)&src2);         --SUB
+		elsif operation = 3 then
+			 Arith := unsigned(src1(31)&src1) - unsigned(src2(31)&src2);         --SUB
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);	
 		elsif operation = 4 then result <= src1 and src2;                                            --AND
@@ -104,9 +106,14 @@ Begin
 		-- (8==> NOP    12==> OUT    13==> IN )
 		elsif operation = 9  then result <= not (src1);                                              --NOT
 		elsif operation = 10 then result <= unsigned(src1) + unsigned(ONE);                          --INC
+			 Arith := unsigned(src1(31)&src1) + unsigned(src2(31)&src2); --ADD, IADD
+			 result<= Arith (31 downto 0); 
+			 CCRValue(2) <= Arith(32);
 		elsif operation = 11 then result <= unsigned(src1) - unsigned(ONE);                          --DEC
+			 Arith := unsigned(src1(31)&src1) - unsigned(src2(31)&src2);         --SUB
+			 result<= Arith (31 downto 0); 
+			 CCRValue(2) <= Arith(32);
 		elsif operation = 20 or operation = 21 or operation = 25 then result <= unsigned(src1) + unsigned(Two); --RET, RTI, pop
-		elsif operation = 24 or operation = 23 or operation = 18 then result <= unsigned(src1) - unsigned(Two);  --Int, Push, Call
 		elsif operation = 28 or operation = 29 or operation = 30 then result <= src2;     --LDM, LDD, STD
 		end if;
 	end process;
@@ -117,7 +124,7 @@ Begin
 	constant Zero: std_logic_vector(31 downto 0) := "00000000000000000000000000000000";
 	begin
 		operation := unsigned(opCode);
-		if RST = '1' then CCRValue(1 downto 0) <= "00";
+		if RST = '1' then CCRValue(1 downto 0) <= "00"; elsif fromMem ='1' then CCRValue(1 downto 0) <= flags(1 downto 0); 
 		elsif oPcode(4) = '0' and operation /= 8 and operation /= 12 and operation /= 13 and operation /= 6 and operation /= 7
 		then CCRValue(1) <= result(31); if result = Zero then CCRValue(0) <= '1'; else CCRValue(0) <= '0'; end if;
 		elsif operation = 16 then CCRValue(0) <= '0';

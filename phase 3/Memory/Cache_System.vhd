@@ -63,7 +63,7 @@ use work.myPackages.all;
 
 Entity Cache_Controller is
 	PORT (clk, rst, MR, MW: IN std_logic;
-	      address : IN std_logic_vector(10 DOWNTO 0);
+	      address : IN std_logic_vector(10 DOWNTO 3);
 	      AddressToRam: OUT std_logic_vector(10 DOWNTO 0);
 	      MemW, CacheW : OUT std_logic);
 END Cache_Controller;
@@ -194,7 +194,7 @@ signal RTCblock, CTRblock: block_Cache;
 signal addresstoRam: std_logic_vector(10 downto 0);
 begin
 cacheMemoryLabel: entity work.Cache_DataMemory port map(clk, MR, MW, RamToCach, CachToRam, address(7 downto 0), datain, dataout, RTCblock, CTRblock);
-cacheControllerLabel: entity work.Cache_Controller port map(clk, rst, MR, MW, address, addresstoRam, CachToRam, RamToCach);
+cacheControllerLabel: entity work.Cache_Controller port map(clk, rst, MR, MW, address(10 downto 3), addresstoRam, CachToRam, RamToCach);
 MainMemoryLabel: entity work.MainMemory port map(clk, CachToRam, addresstoRam, CTRblock, RTCblock);
 end ARCHITECTURE;
 
