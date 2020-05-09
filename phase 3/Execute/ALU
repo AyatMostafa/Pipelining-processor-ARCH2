@@ -25,13 +25,12 @@ constant Zero: std_logic_vector(31 downto 0) := "0000000000000000000000000000000
 begin
 	process(operand, L)
 	begin
+		temp(0) <= operand;
 		if L ='0' then
-			temp(0) <= operand;
 			M: for I in 30 downto 0 loop
 			Mi:temp(31-I) <= operand(I downto 0)  & Zero(31 downto I+1);
 			end loop;
 		else
-			temp(0) <= operand;
 			N: for I in 30 downto 0 loop
 			Ni:temp(31-I) <= Zero(31 downto I+1) & operand(31 downto (31-I));
 			end loop;
@@ -80,8 +79,9 @@ Begin
 	--ALU main functionality
 	shift_L: entity work.shift port map (src1, src2, '0', shiftleft,  SHLCarry);
 	shift_R: entity work.shift port map (src1, src2, '1', shiftright, SHRCarry);
-	process (opCode, Swap, RST, src1, src2, Interrupt, SHLCarry, SHRCarry)
+	process (opCode, Swap, RST, src1, src2, Interrupt, SHLCarry, SHRCarry, shiftleft, shiftright)
 	variable operation: unsigned (4 downto 0);
+	variable Arith: std_logic_vector(32 downto 0);
 	constant One: std_logic_vector(31 downto 0) := "00000000000000000000000000000001";
 	constant Two: std_logic_vector(31 downto 0) := "00000000000000000000000000000010";
 	begin
@@ -90,8 +90,13 @@ Begin
 		if Interrupt = '1' then result <= unsigned(src1) - unsigned(Two);
 		elsif RST = '1' then CCRValue(2) <= '0';
 		elsif operation = 0 then if Swap = '0' then result <= src1; else result <= src2; end if;     --SWAP
-		elsif operation = 1 or operation = 2 then result <= unsigned(src1) + unsigned(src2);         --ADD, IADD
-		elsif operation = 3 then result <= unsigned(src1) - unsigned(src2);                          --SUB
+		elsif operation = 1 or operation = 2 then
+			 Arith := unsigned(src1(31)&src1) + unsigned(src2(31)&src2); --ADD, IADD
+			 result<= Arith (31 downto 0); 
+			 CCRValue(2) <= Arith(32);	
+		elsif operation = 3 then Arith := unsigned(src1(31)&src1) - unsigned(src2(31)&src2);         --SUB
+			 result<= Arith (31 downto 0); 
+			 CCRValue(2) <= Arith(32);	
 		elsif operation = 4 then result <= src1 and src2;                                            --AND
 		elsif operation = 5 then result <= src1 or src2;                                             --OR
 		elsif operation = 6 then result <= shiftleft;  CCRValue(2) <= SHLCarry;                      --SHL
@@ -106,7 +111,7 @@ Begin
 		end if;
 	end process;
 	output <= result;
-	-- CCR handling
+	-- CCR (N & Z) handling
 	process (result, opCode, RST)
 	variable operation: unsigned (4 downto 0);
 	constant Zero: std_logic_vector(31 downto 0) := "00000000000000000000000000000000";
