@@ -6,7 +6,7 @@ Entity MemoryStage is
 	      ALURes, writeData   :IN  std_logic_vector(31 downto 0);
 	      clk                 :IN  std_logic;
 	      RST_INT             :IN  std_logic_vector(1 downto 0);
-	      ALUOut, DataRead    :OUT std_logic_vector(31 downto 0);
+	      DataRead            :OUT std_logic_vector(31 downto 0);
 	      LDflags_Out, LDPC   :OUT std_logic);
 End MemoryStage;
 
@@ -21,9 +21,8 @@ EAInp <= ALURes(15)&ALURes(5 downto 3);
 EATotal<= EAreg& ALURes(15 downto 0);
 AddfromEA<= EATotal(10 downto 0);
 EARegLabel:    entity work.reg32(rising) generic map(4) port map(EAInp, controlSignals(5), clk, EAreg, RST_INT(1));
-addresMuxLabel:entity work.twoInpMux port map(ALURes(10 downto 0), AddfromEA, controlSignals(4), address); 
+addresMuxLabel:entity work.twoInpMux generic map(11) port map(ALURes(10 downto 0), AddfromEA, controlSignals(4), address); 
 RamLabel:      entity work.RamPipelined port map(clk, controlSignals(3), controlSignals(2), RST_INT(1), RST_INT(0), address, WriteData, DataRead);
-ALUOut  <= ALURes;
 LDflags_Out<= controlSignals(7);
 LDPC<= controlSignals(6) or RST_INT(0) or RST_INT(1);
 End Mem;  

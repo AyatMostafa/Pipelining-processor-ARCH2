@@ -15,9 +15,9 @@ ARCHITECTURE Behavioral of SP is
 BEGIN
 	PROCESS(clk,load, rst)
 	BEGIN
-		if(rst ='1') then Q <= (others => '1');
-		elsIF(rising_edge(clk)) THEN
-			if load = '1' then Q <= D; end if;
+		if(rst ='1') then Q <= (others => '1'); Q(0)<='0'; end if;
+		IF(rising_edge(clk)) THEN
+			if load = '1' then Q <= D; Q(0)<='0'; end if;
 		END IF;
 	END PROCESS;
 END ARCHITECTURE;
@@ -89,8 +89,8 @@ library ieee;
 USE ieee.std_logic_1164.ALL;
 
 Entity execute is
-	port( Control_Signals: IN std_logic_vector(9 downto 0);
-	      Control_Signals2:IN std_logic_vector(10 downto 0);
+	port( ControlSignals: IN std_logic_vector(4 downto 0);
+	      ControlSignals2:IN std_logic_vector(11 downto 0);
 	      PC, PCNew      : IN std_logic_vector(31 downto 0);
 	      Rsrc1,Rsrc2,InputPORT, fromMem:IN std_logic_vector(31 downto 0);
 	      Clk, Rst, Interrupt, branch, ccRfromMem: IN std_logic;
@@ -107,20 +107,27 @@ signal CCR: std_logic_vector(2 downto 0);
 signal ALUResult, R1, SPMain, SPTemp: std_logic_vector(31 downto 0);
 
 
---controlSignals(DE,FE,ALUsrc,SP,MR,MW,RW,memtoreg)
---controlSignals2(int,push,(call),in,out,ret,ints2,rti,swap,fromEA,EaH,ints3)
+--controlSignals(4-SP,3-MR,2-MW,1-RW,0-memtoreg)
+--controlSignals2(11-int,10-push,9-(call),8-in,7-out,6-ret,5-ints2,4-rti,3-swap,2-fromEA,1-EaH,0-ints3)
 --Lev2CTRLsignals(5>EAH, 4>fromEA, 3>we, 2>re, 1>WB, 0>fromMemtoReg)
 signal SWAP, SPsignal, Insignal, oldSP, IntPC, intFlag, Call, OUTSIgnal, push, rti,ret,EAH,fromEA,we,re,WB,fromMemToReg: std_logic;
+signal flags32: std_logic_vector(31 downto 0);
 constant zero: std_logic_vector(28 downto 0):="00000000000000000000000000000";
 begin
+SWAP<= controlSignals2(3); SPsignal<=controlSignals(4); Insignal<=controlSignals2(8);
+IntPC<= controlSignals2(0); intFlag<=controlSignals2(5); Call<=controlSignals2(9);
+OUTSIgnal<=controlSignals2(7); push<=controlSignals2(10); rti<=controlSignals2(4);
+ret<=controlSignals2(6); EAH<=controlSignals2(1); fromEA<=controlSignals2(2); we<=controlSignals(2);
+re<=controlSignals(3); WB<=controlSignals(1); fromMemToReg<=controlSignals(0);
 
+flags32<=CCR&Zero;
 oldSP <= push or Call or IntPC or intFlag;
 ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, Rst, fromMem(31 downto 29), ALUResult, CCR);
 SP_Label : entity work.SP port map(ALUResult, SPsignal, clk, SPMain, rst);
 SP_Temp:   entity work.SP port map(SPMain,'1',clk, SPTemp, rst);
 R1Mux:     entity work.twoInpMux port map(Rsrc1, SPMain, SPsignal, R1);
 ALUoutMux: entity work.threeInpMux port map(ALUResult, InputPORT, SPTemp, Insignal, oldSP, ALUoutput);
-DataWrtmux:entity work.FourInpMux port map(PC, PCNew, CCR, Rsrc1, IntPC, Call, intFlag, WriteData);
+DataWrtmux:entity work.FourInpMux port map(PC, PCNew,flags32, Rsrc1, IntPC, Call, intFlag, WriteData);
 BRanchCirc:entity work.BRexeceution_Prediction port map(branch, CCR(0), predictionBits, NewBits, falseprediction); 
 FPRdestlBL:entity work.twoInpMux port map(Rsrc1, PCNew, predictionBits(1), FPReg);
 SignalsOUT <= rti&ret&EAH&fromEA&we&re&WB&fromMemToReg;
