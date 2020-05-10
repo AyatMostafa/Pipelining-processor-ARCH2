@@ -21,6 +21,7 @@ force -freeze sim:/efu/Rdst_exec 001 0
 force -freeze sim:/efu/Rdst_mem 010 0
 force -freeze sim:/efu/wb_mem 1 0
 force -freeze sim:/efu/wb_exec 1 0
+force -freeze sim:/efu/enable  1 0
 run
 run
 force -freeze sim:/efu/Rdst_exec 111 0
@@ -35,9 +36,13 @@ run
 force -freeze sim:/efu/Rdst_exec 111 0
 run
 run
+force -freeze sim:/efu/enable  0 0
 force -freeze sim:/efu/Rdst_mem 111 0
 force -freeze sim:/efu/Rdst_mem 000 0
 force -freeze sim:/efu/Rsrc1 010 0
+run
+run
+force -freeze sim:/efu/enable  1 0
 run
 run
 force -freeze sim:/efu/wb_mem 0 0

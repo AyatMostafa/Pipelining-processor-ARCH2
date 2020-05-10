@@ -20,6 +20,7 @@ force -freeze sim:/dfu/Rdst_exec 111 0
 force -freeze sim:/dfu/Rdst_mem 010 0
 force -freeze sim:/dfu/wb_mem 1 0
 force -freeze sim:/dfu/wb_exec 1 0
+force -freeze sim:/dfu/enable 1 0
 run
 run
 force -freeze sim:/dfu/Rdst_exec 000 0
@@ -28,8 +29,12 @@ run
 force -freeze sim:/dfu/Rdst_exec 101 0
 run
 run
+force -freeze sim:/dfu/enable 0 0
 force -freeze sim:/dfu/Rdst_mem 000 0
 # Compile of decode FU.vhd was successful.
+run
+run
+force -freeze sim:/dfu/enable 1 0
 run
 run
 force -freeze sim:/dfu/Rdst_exec 000 0

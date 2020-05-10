@@ -6,6 +6,7 @@ use ieee.numeric_std.all;
 entity DFU is
 Port ( 
 clk : IN std_logic;
+enable : in std_logic;
 Rdest_JZ : in STD_LOGIC_VECTOR (2 downto 0);
 Rdst_exec : in STD_LOGIC_VECTOR (2 downto 0);
 Rdst_mem : in STD_LOGIC_VECTOR (2 downto 0);
@@ -26,25 +27,29 @@ PROCESS(clk) IS
 
 BEGIN
 
-IF rising_edge(clk) THEN
+if enable = '1' then
+   IF rising_edge(clk) THEN
 
-  IF wb_exec = '1' and (Rdest_JZ(0)=Rdst_exec(0) and Rdest_JZ(1)=Rdst_exec(1) and Rdest_JZ(2)=Rdst_exec(2)) THEN
+     IF wb_exec = '1' and (Rdest_JZ(0)=Rdst_exec(0) and Rdest_JZ(1)=Rdst_exec(1) and Rdest_JZ(2)=Rdst_exec(2)) THEN
      
-     mx1 <= "10";
+        mx1 <= "10";
 
-  elsif wb_mem = '1' and  (Rdest_JZ(0)=Rdst_mem(0) and Rdest_JZ(1)=Rdst_mem(1) and Rdest_JZ(2)=Rdst_mem(2)) THEN
+     elsif wb_mem = '1' and  (Rdest_JZ(0)=Rdst_mem(0) and Rdest_JZ(1)=Rdst_mem(1) and Rdest_JZ(2)=Rdst_mem(2)) THEN
 
-      mx1 <= "01";
+         mx1 <= "01";
 
 
-  else
+     else
 
-    mx1 <= "00";
+       mx1 <= "00";
 
-  END IF;
+     END IF;
 
-END IF;
+   END IF;
 
+else
+   mx1<="00";
+end if;
 mux1<= mx1;
 
 END PROCESS; 
