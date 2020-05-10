@@ -63,7 +63,7 @@ use work.myPackages.all;
 
 Entity Cache_Controller is
 	PORT (clk, rst, MR, MW: IN std_logic;
-	      address : IN std_logic_vector(10 DOWNTO 0);
+	      address : IN std_logic_vector(10 DOWNTO 3);
 	      AddressToRam: OUT std_logic_vector(10 DOWNTO 0);
 	      MemW, CacheW : OUT std_logic);
 END Cache_Controller;
@@ -100,8 +100,8 @@ process (clk, rst, tagWrite, address, dirtyWrite)
 		if dirtyWrite = '1' then dirtyArray(index)<= '0'; end if; 
  
 		if MW = '1' and ValidArray(index) = '1' and TagArray(index) = tag then -- Write HIT
-			dirtyArray(index)<= '1';
-		elsif tagWrite = '1' then TagArray(index) <= tag; ValidArray(index)<='1'; end if;
+			dirtyArray(index)<= '1'; end if;
+		if tagWrite = '1' then TagArray(index) <= tag; ValidArray(index)<='1'; end if;
 	end if;
 end process;
 
