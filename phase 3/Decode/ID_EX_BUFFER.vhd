@@ -13,6 +13,7 @@ entity ID_EX_BUFFER is
 	Rdst : IN std_logic_vector(2 downto 0);
 	Branch  : IN std_logic;
 
+
 	
 	opCode_out : out std_logic_vector(4 downto 0);
 	R1_out : out std_logic_vector(31 downto 0);
