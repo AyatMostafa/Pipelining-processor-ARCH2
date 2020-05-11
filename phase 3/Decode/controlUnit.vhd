@@ -8,7 +8,6 @@ use ieee.std_logic_1164.all;
 entity controlUnit is 
 	port(
 		int             :  in std_logic;
-		call            :  in std_logic;
 		opcode          :  in std_logic_vector(4 downto 0);
 		IfBranch        :  in std_logic;
 		Clk		:  in std_logic;
@@ -48,7 +47,9 @@ begin
 	begin 
 		controlSignals2 <= "000000000000"; 
 		FetchEnable<='0';
-		controlSignals2(9) <= call;
+		if(opcode="10010") then
+			controlSignals2(9) <= '1';
+		end if;
 		if(rst = '1') then
 			controlSignals <= "00000000"; 	
 		elsif(IfBranch = '1') then
