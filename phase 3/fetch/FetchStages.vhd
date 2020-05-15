@@ -4,7 +4,7 @@ use IEEE.Numeric_Std.all;
 
 entity FetchStage is
      port (
-	  CLK, Rst, INT : in std_logic;	
+	  CLK: in std_logic;	
 	  PC_RST : in std_logic;
 	  disable_pc : in std_logic;
 	  wrong_P_signal , Mem_PC_signal : in std_logic;
@@ -13,9 +13,9 @@ entity FetchStage is
 	  new_state_p  : in std_logic_vector(1 downto 0);
 	  WE_P    : IN std_logic;
 	
-	  
 	  IR, Imm_value : Out std_logic_vector(15 downto 0);
 	  PC : Out std_logic_vector(31 downto 0);
+	  PCAdder : Out std_logic_vector(31 downto 0);
 	  IsBranch : out std_logic;
 	  Prediction: out std_logic_vector(1 downto 0);
 	  stall: out std_logic
@@ -47,6 +47,7 @@ begin
 	IR <= IR_out;
 	Imm_value <= IR_out;
 	PC <= PC_out;
+	PCAdder <= PC_normal;
 	ISBranch <= istaken Or ifJz;
 	stall <= stall_hazard;
 	
