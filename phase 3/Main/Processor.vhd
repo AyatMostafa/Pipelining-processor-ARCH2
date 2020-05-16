@@ -28,12 +28,7 @@ signal Opcodes       :   std_logic_vector(4 downto 0);
 signal Rdst_ID_EX_Q :   std_logic_vector(2 downto 0);
 
 -- Fetch Signals
-signal disable_pc : std_logic;
-signal wrong_P_signal , Mem_PC_signal : std_logic;
-signal PC_exec, Pc_mem : std_logic_vector(31 downto 0);
-signal address_for_p : std_logic_vector(31 downto 0);
-signal new_state_p  : std_logic_vector(1 downto 0);
-signal WE_P    : std_logic;	  
+signal disable_pc : std_logic;  
 signal IR, Imm_value : std_logic_vector(15 downto 0);
 signal Fe_PC_out : std_logic_vector(31 downto 0);
 signal FE_PCAdder : std_logic_vector(31 downto 0);
@@ -66,8 +61,8 @@ MTReg<= WBsignals(0);
 rst_intr_ID_EX_Q<= rst_ID_EX_Q & interrupt_ID_EX_Q ;
 
 
-FetchLabel: ENTITY work.FetchStage port map(CLK, PC_RST, disable_pc, wrong_P_signal, Mem_PC_signal, PC_exec, Pc_mem,
-						address_for_p, new_state_p, WE_p, IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction, stall);
+FetchLabel: ENTITY work.FetchStage port map(CLK, PC_RST, fetchEnable, falsePrediction, LDPC, FPReg, ReadDatafromMem, PCout, NewBits, branchOUT,
+					     IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction, stall);
 
 
 IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, rst_IF_ID, FE_PC_out, FE_PCAdder, IR, Imm_value, IsBranch, Prediction, rst, Interrupt, 
