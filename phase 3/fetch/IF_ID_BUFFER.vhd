@@ -5,13 +5,13 @@ use IEEE.Numeric_Std.all;
 entity IF_ID_BUFFER is
      port (
 	clk, we, rst : IN std_logic;
-	PC : IN std_logic_vector(31 downto 0);
+	PC, PCAdder : IN std_logic_vector(31 downto 0);
 	IR, Imm_val : IN std_logic_vector(15 downto 0);
 	Branch  : IN std_logic;
 	pred_bits : IN std_logic_vector( 1 downto 0);
 	RESET, INT : IN std_logic;
 	
-	PC_out : out std_logic_vector(31 downto 0);
+	PC_out, PCAdder_out : out std_logic_vector(31 downto 0);
 	IR_out, Imm_val_out : Out std_logic_vector(15 downto 0);
 	Branch_out  : Out std_logic;
 	pred_bits_out : Out std_logic_vector( 1 downto 0);
@@ -24,8 +24,9 @@ architecture arch_F_BUFFER of IF_ID_BUFFER is
 
 begin
 	lab :entity work.reg32(falling) generic map(32) port map(PC, we, clk, PC_out, rst);
-	lab2:entity work.reg32(falling) generic map(16) port map(IR, we, clk, IR_out, rst);
-	lab3:entity work.reg32(falling) generic map(16) port map(Imm_val, we, clk, Imm_val_out, rst);
+	lab2 :entity work.reg32(falling) generic map(32) port map(PCAdder, we, clk, PCAdder_out, rst);
+	lab3:entity work.reg32(falling) generic map(16) port map(IR, we, clk, IR_out, rst);
+	lab4:entity work.reg32(falling) generic map(16) port map(Imm_val, we, clk, Imm_val_out, rst);
 	lab5:entity work.reg32(falling) generic map(2) port map(pred_bits, we, clk, pred_bits_out, rst);
 	
 	PROCESS(CLK, RST)

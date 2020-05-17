@@ -3,11 +3,21 @@ USE ieee.std_logic_1164.ALL;
 
 Entity processor is 
 	port( clk, rst, Interrupt   : IN  std_logic;
+	      PC_RST                : IN  std_logic;	
 	      InPort                : IN  std_logic_vector(31 downto 0);
 	      OutPort               : OUT std_logic_vector(31 downto 0));
 End processor;
 
 Architecture pipeline of processor is
+
+--signals from IF/ID buffer
+signal  En_IF_ID, rst_IF_ID : std_logic;
+signal  PC_out, PC_Adder_out : std_logic_vector(31 downto 0);
+signal	IR_out, Imm_val_out : std_logic_vector(15 downto 0);
+signal	Branch_out  : std_logic;
+signal	pred_bits_out : std_logic_vector( 1 downto 0);
+signal	RESET_out, INT_out : std_logic;
+
 --signals from ID/EX buffer
 signal controlSignals:   std_logic_vector(4 downto 0);
 signal controlSignals2:  std_logic_vector(11 downto 0);
@@ -16,6 +26,15 @@ signal branch, rst_ID_EX_Q, interrupt_ID_EX_Q :   std_logic;
 signal PredictionBits:   std_logic_vector(1 downto 0);
 signal Opcodes       :   std_logic_vector(4 downto 0);
 signal Rdst_ID_EX_Q :   std_logic_vector(2 downto 0);
+
+-- Fetch Signals
+signal disable_pc : std_logic;  
+signal IR, Imm_value : std_logic_vector(15 downto 0);
+signal Fe_PC_out : std_logic_vector(31 downto 0);
+signal FE_PCAdder : std_logic_vector(31 downto 0);
+signal IsBranch : std_logic;
+signal Prediction: std_logic_vector(1 downto 0);
+signal stall: std_logic;
 
 --Execute signals
 ---------------------------
@@ -40,6 +59,16 @@ Begin
 WriteBack<= WBsignals(1);
 MTReg<= WBsignals(0);
 rst_intr_ID_EX_Q<= rst_ID_EX_Q & interrupt_ID_EX_Q ;
+
+
+FetchLabel: ENTITY work.FetchStage port map(CLK, PC_RST, fetchEnable, falsePrediction, LDPC, FPReg, ReadDatafromMem, PCout, NewBits, branchOUT,
+					     IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction, stall);
+
+
+IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, rst_IF_ID, FE_PC_out, FE_PCAdder, IR, Imm_value, IsBranch, Prediction, rst, Interrupt, 
+						PC_out, PC_Adder_out, IR_out, Imm_val_out, Branch_out, pred_bits_out, RESET_out, INT_out);
+
+
 ExecuteLabel:  entity work.execute port map(controlSignals, controlSIgnals2, PC, PCNew, Rsrc1, Rsrc2, inPort, ReadDatafromMem, clk, rst_ID_EX_Q, interrupt_ID_EX_Q, 
 					    branch, LDflags, predictionBits, Opcodes, NewBits, sigOut_EX_Mem_D, OutPort, ALUout, WriteData, 
 					    FPreg, falsePrediction); 
