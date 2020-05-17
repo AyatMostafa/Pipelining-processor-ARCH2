@@ -17,6 +17,7 @@ add wave -position insertpoint sim:/efu/*
 force -freeze sim:/efu/clk 1 0, 0 {50 ps} -r 100
 force -freeze sim:/efu/Rsrc1 000 0
 force -freeze sim:/efu/Rsrc2 111 0
+force -freeze sim:/efu/if_swap 0 0
 force -freeze sim:/efu/Rdst_exec 001 0
 force -freeze sim:/efu/Rdst_mem 010 0
 force -freeze sim:/efu/wb_mem 1 0
@@ -27,12 +28,14 @@ run
 force -freeze sim:/efu/Rdst_exec 111 0
 run
 run
+force -freeze sim:/efu/if_swap 1 0
 force -freeze sim:/efu/Rdst_mem 000 0
 run
 run
 force -freeze sim:/efu/Rdst_exec 000 0
 run
 run
+force -freeze sim:/efu/if_swap 0 0
 force -freeze sim:/efu/Rdst_exec 111 0
 run
 run

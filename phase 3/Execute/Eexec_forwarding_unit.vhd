@@ -7,6 +7,7 @@ entity EFU is
 Port ( 
 clk : IN std_logic;
 enable : in std_logic;
+if_swap : in std_logic;
 Rsrc1 : in STD_LOGIC_VECTOR (2 downto 0);
 Rsrc2 : in STD_LOGIC_VECTOR (2 downto 0);
 Rdst_exec : in STD_LOGIC_VECTOR (2 downto 0);
@@ -22,7 +23,6 @@ architecture Behavioral of EFU is
 
 signal mx1 : STD_LOGIC_VECTOR (1 downto 0):="00";
 signal mx2 : STD_LOGIC_VECTOR (1 downto 0):="00";
-
 begin
 
 PROCESS(clk) IS
@@ -32,7 +32,7 @@ BEGIN
 if enable = '1' then
    IF rising_edge(clk) THEN
 
-     IF wb_exec = '1' and (Rsrc1(0)=Rdst_exec(0) and Rsrc1(1)=Rdst_exec(1) and Rsrc1(2)=Rdst_exec(2)) THEN
+     IF wb_exec = '1' and (Rsrc1(0)=Rdst_exec(0) and Rsrc1(1)=Rdst_exec(1) and Rsrc1(2)=Rdst_exec(2)) and if_swap='0' THEN
      
         mx1 <= "10";
 
@@ -47,7 +47,7 @@ if enable = '1' then
 
      END IF;
 
-     IF wb_exec = '1' and (Rsrc2(0)=Rdst_exec(0) and Rsrc2(1)=Rdst_exec(1) and Rsrc2(2)=Rdst_exec(2)) THEN
+     IF wb_exec = '1' and (Rsrc2(0)=Rdst_exec(0) and Rsrc2(1)=Rdst_exec(1) and Rsrc2(2)=Rdst_exec(2)) and if_swap='0' THEN
      
         mx2 <= "01";
 
