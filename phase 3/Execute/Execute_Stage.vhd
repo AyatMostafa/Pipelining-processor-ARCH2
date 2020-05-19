@@ -92,26 +92,31 @@ Entity execute is
 	port( ControlSignals: IN std_logic_vector(4 downto 0);
 	      ControlSignals2:IN std_logic_vector(11 downto 0);
 	      PC, PCNew      : IN std_logic_vector(31 downto 0);
-	      Rsrc1,Rsrc2,InputPORT, fromMem:IN std_logic_vector(31 downto 0);
+	      Rsrcc1,Rsrcc2,InputPORT, fromMem:IN std_logic_vector(31 downto 0);
 	      Clk, Rst, Interrupt, branch, ccRfromMem: IN std_logic;
 	      predictionBits:  IN std_logic_vector(1 downto 0);
 	      OpCode:          IN std_logic_vector(4 downto 0);
+	      RADD:            IN std_logic_vector(5 downto 0);
+	      Rdst_exec, Rdst_mem : in STD_LOGIC_VECTOR (2 downto 0);
+              wb_mem, wb_exec, enableFU   : in STD_LOGIC;
+	      Data_ex, Data_mem:   IN std_logic_vector(31 downto 0);
 	      NewBits       :  OUT std_logic_vector(1 downto 0);
 	      SignalsOUT    :  OUT std_logic_vector(7 downto 0);
-	      OutputPort, ALUoutput, WriteData, FPReg: OUT std_logic_vector(31 downto 0);
-	      falseprediction: OUT std_logic);
+	      OutputPort, ALUoutput, WriteData, FPReg, R_br_fetch: out std_logic_vector(31 downto 0);
+	      ifJZ, falsepredictioninBR: OUT std_logic);
 End execute;
 
 ARCHITECTURE ExecStage OF execute IS
 signal CCR: std_logic_vector(2 downto 0);
 signal ALUResult, R1, SPMain, SPTemp: std_logic_vector(31 downto 0);
-
+signal falseprediction, ifJZSig: std_logic;
 
 --controlSignals(4-SP,3-MR,2-MW,1-RW,0-memtoreg)
 --controlSignals2(11-int,10-push,9-(call),8-in,7-out,6-ret,5-ints2,4-rti,3-swap,2-fromEA,1-EaH,0-ints3)
 --Lev2CTRLsignals(5>EAH, 4>fromEA, 3>we, 2>re, 1>WB, 0>fromMemtoReg)
 signal SWAP, SPsignal, Insignal, oldSP, IntPC, intFlag, Call, OUTSIgnal, push, rti,ret,EAH,fromEA,we,re,WB,fromMemToReg: std_logic;
-signal flags32: std_logic_vector(31 downto 0);
+signal flags32, Rsrc1, Rsrc2:  std_logic_vector(31 downto 0);
+signal mx1, mx2: std_logic_vector(1 downto 0);
 constant zero: std_logic_vector(28 downto 0):="00000000000000000000000000000";
 begin
 SWAP<= controlSignals2(3); SPsignal<=controlSignals(4); Insignal<=controlSignals2(8);
@@ -131,11 +136,18 @@ DataWrtmux:entity work.FourInpMux port map(PC, PCNew,flags32, Rsrc1, IntPC, Call
 BRanchCirc:entity work.BRexeceution_Prediction port map(branch, CCR(0), predictionBits, NewBits, falseprediction); 
 FPRdestlBL:entity work.twoInpMux port map(Rsrc1, PCNew, predictionBits(1), FPReg);
 SignalsOUT <= rti&ret&EAH&fromEA&we&re&WB&fromMemToReg;
+R_br_fetch <= PC;
+ifJZSig <= OpCode(4) and not(OpCode(3)) and not(OpCode(2)) and not(OpCode(1)) and not(OpCode(0));
+falsepredictioninBR<=falseprediction and ifJZSig;
+ifJZ <= ifJZSig;
 process(OUTSIgnal, Rsrc1)
 begin
 	if (OUTSIgnal = '1') then OutputPort <= Rsrc1; end if;
 end process;
-
+-- Forwarding Unit
+FULabel: entity work.EFU port map (enableFU, SWAP, RADD(5 downto 3), RADD(2 downto 0), Rdst_exec, Rdst_mem, wb_mem, wb_exec, mx1, mx2);
+R1FUMux: entity work.three_input_mux port map(Rsrcc1, Data_mem, Data_ex, mx1, Rsrc1);
+R2FUMux: entity work.three_input_mux port map(Rsrcc2, Data_mem, Data_ex, mx2, Rsrc2);
 End ExecStage;
 
 -- EX/Mem buffer

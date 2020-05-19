@@ -16,7 +16,7 @@ end InstrMemory;
 
 architecture arch of InstrMemory is
 
-type ram_type is array (0 to 2**30 - 1) of std_logic_vector(15 downto 0);
+type ram_type is array (0 to 2**11 - 1) of std_logic_vector(15 downto 0);
 
 impure function read_file return ram_type is
 	file ram_file : text open read_mode is "initialRAM.txt";
@@ -33,7 +33,7 @@ impure function read_file return ram_type is
 	      txt_ram(count) := to_stdlogicvector(txt_bit);
 	      count := count+1;
 	end loop;
-	txt_ram(count to 2**30 -1) := (others=>(others=>'0'));
+	txt_ram(count to 2**11 - 1) := (others=>(others=>'0'));
 	file_close(ram_file);
 	return txt_ram;
 end function;
@@ -45,11 +45,11 @@ begin
 	BEGIN
 	IF rising_edge(clk) THEN
 	     IF we = '1' THEN
-		temp <= ram(to_integer(unsigned(address)));
+		temp <= ram(to_integer(unsigned(address(10 downto 0))));
 		temp <= newState & temp(13 downto 0);
-		ram(to_integer(unsigned(address))) <= temp;
+		ram(to_integer(unsigned(address(10 downto 0)))) <= temp;
 	     END IF;
 	END IF;
 	END PROCESS;
-	IR_out <= ram(to_integer(unsigned(PC)));
+	IR_out <= ram(to_integer(unsigned(PC(10 downto 0))));
 end arch;

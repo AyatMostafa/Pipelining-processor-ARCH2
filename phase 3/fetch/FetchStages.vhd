@@ -8,7 +8,7 @@ entity FetchStage is
 	  PC_RST : in std_logic;
 	  disable_pc : in std_logic;
 	  wrong_P_signal , Mem_PC_signal : in std_logic;
-	  PC_exec, Pc_mem : in std_logic_vector(31 downto 0);
+	  PC_exec, Pc_mem, PC_decode: in std_logic_vector(31 downto 0);
 	  address_for_p : in std_logic_vector(31 downto 0);
 	  new_state_p  : in std_logic_vector(1 downto 0);
 	  WE_P    : IN std_logic;
@@ -23,7 +23,7 @@ entity FetchStage is
 end FetchStage;
 
 architecture arch_fetch of FetchStage is
-signal PC_normal, PC_decode, PC_out_MUX, PC_out: std_logic_vector(31 downto 0);
+signal PC_normal, PC_out_MUX, PC_out: std_logic_vector(31 downto 0);
 signal selector : std_logic_vector(1 downto 0);
 signal istaken, ifJz: std_logic; -- in all cases of branching
 signal stall_hazard , Enable : std_logic;
@@ -42,13 +42,15 @@ begin
 
 	memory : ENTITY work.InstrMemory PORT MAP(PC_out, address_for_p, WE_P, CLK, new_state_p, IR_out);
 
-	control_branch : ENTITY work.ControlBranch Port Map(IR_out, Clk, istaken, ifJz, PC_decode);
+	control_branch : ENTITY work.ControlBranch Port Map(IR_out, Clk, istaken, ifJz);
 	
+	stall_hazard<='0';
 	IR <= IR_out;
 	Imm_value <= IR_out;
 	PC <= PC_out;
 	PCAdder <= PC_normal;
 	ISBranch <= istaken Or ifJz;
 	stall <= stall_hazard;
+	Prediction <= IR_out(15 downto 14);
 	
 end arch_fetch;

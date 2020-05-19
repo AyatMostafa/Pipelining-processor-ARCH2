@@ -8,9 +8,10 @@ entity ControlBranch is
 	IR : IN std_logic_vector(15 downto 0);
 	clk: IN std_logic;
 	ifBranch : out std_logic;     -- get rdst to pc 
-	ifJZ : out std_logic;
-	Rdest : out std_logic_vector(31 downto 0)
+	ifJZ : out std_logic
 	);
+	--Rdest : out std_logic_vector(31 downto 0)
+	--);
 end ControlBranch;
 
 architecture arch3 of ControlBranch is	
@@ -27,5 +28,5 @@ begin
 		ifBranch <= '1';
 	   END IF;
 	END PROCESS;	
-	FileReg1 : ENTITY work.RegFile PORT MAP("000", "000", IR(2 downto 0), clk, '0', "000", "00000000000000000000000000000000", R1, R2, Rdest);
+	--FileReg1 : ENTITY work.RegFile PORT MAP("000", "000", IR(2 downto 0), clk, '0', "000", "00000000000000000000000000000000", R1, R2, Rdest);
 end arch3;

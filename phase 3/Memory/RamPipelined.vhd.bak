@@ -11,7 +11,7 @@ we : IN std_logic;
 re : IN std_logic;
 reset : IN std_logic;
 interrupt : IN std_logic;
-addressIN : IN std_logic_vector(10 DOWNTO 0);;
+addressIN : IN std_logic_vector(10 DOWNTO 0);
 datain : IN std_logic_vector(31 DOWNTO 0);
 dataout : OUT std_logic_vector(31 DOWNTO 0) );
 END ENTITY RamPipelined;

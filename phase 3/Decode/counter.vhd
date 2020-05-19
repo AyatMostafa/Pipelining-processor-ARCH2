@@ -14,21 +14,27 @@ architecture Behavioral of counter is
 
 signal l_count : std_logic_vector( 2 downto 0);
 begin
-process ( clk , reset )
+process ( clk , reset, l_count )
+variable sigCame: Integer:=0;
 begin 
-count <= '0';
+
 if (reset = '1') then
 	l_count <= "000";
 	count <= '1';
-else 
-    if(rising_edge(clk)) then
-	if (l_count = "101") then
-		l_count <= "101";
-	else
-		l_count <= l_count + 1 ;
-		count <= '1';
-	end if ;
-     end if ;
+	sigCame:=1;
+elsif (rising_edge(clk)) then
+    	if sigCame=1 then
+		if (l_count = "010") then
+			l_count <= "010";
+			count <= '0';
+			sigCame:=0;
+		else
+			l_count <= l_count+1;
+			count <= '1';
+		end if;
+	else 
+		count <='0';
+	end if;
 end if;
 END PROCESS;
 end Behavioral;

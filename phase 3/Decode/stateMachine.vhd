@@ -31,16 +31,17 @@ begin
         end process;
 
 
-	process (clk,rst) 
+	process (clk,rst, input) 
             begin
               if rst = '1' then
                     current_state <= S0;
-              elsif rising_edge(clk) then 
+	      end if;
+              if falling_edge(clk) then 
                 case current_state is
                     when S0 =>
-                        if input = "00" then current_state <= S0; 
-			elsif input = "01" then current_state <= S1; 
-			elsif input = "10" then current_state <= S2; 
+			if input = "01" then current_state <= S1; 
+			elsif input = "10" then current_state <= S2;
+			else current_state <= S0; 
 			end if;
                     when S1 =>
                         current_state <= S0;

@@ -4,7 +4,7 @@ use IEEE.Numeric_Std.all;
 
 entity IF_ID_BUFFER is
      port (
-	clk, we, rst : IN std_logic;
+	clk, we, rst, decEnable : IN std_logic;
 	PC, PCAdder : IN std_logic_vector(31 downto 0);
 	IR, Imm_val : IN std_logic_vector(15 downto 0);
 	Branch  : IN std_logic;
@@ -20,12 +20,13 @@ entity IF_ID_BUFFER is
 end IF_ID_BUFFER;
 
 architecture arch_F_BUFFER of IF_ID_BUFFER is
-
+signal IRenable: std_logic;
 
 begin
+	IRenable <= we and decEnable;
 	lab :entity work.reg32(falling) generic map(32) port map(PC, we, clk, PC_out, rst);
 	lab2 :entity work.reg32(falling) generic map(32) port map(PCAdder, we, clk, PCAdder_out, rst);
-	lab3:entity work.reg32(falling) generic map(16) port map(IR, we, clk, IR_out, rst);
+	lab3:entity work.reg32(falling) generic map(16) port map(IR, IRenable, clk, IR_out, rst);
 	lab4:entity work.reg32(falling) generic map(16) port map(Imm_val, we, clk, Imm_val_out, rst);
 	lab5:entity work.reg32(falling) generic map(2) port map(pred_bits, we, clk, pred_bits_out, rst);
 	

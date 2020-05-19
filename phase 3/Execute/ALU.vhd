@@ -105,12 +105,12 @@ Begin
 		elsif operation = 7 then result <= shiftright; CCRValue(2) <= SHRCarry;                      --SHR
 		-- (8==> NOP    12==> OUT    13==> IN )
 		elsif operation = 9  then result <= not (src1);                                              --NOT
-		elsif operation = 10 then result <= unsigned(src1) + unsigned(ONE);                          --INC
-			 Arith := unsigned(src1(31)&src1) + unsigned(src2(31)&src2); --ADD, IADD
+		elsif operation = 10 then                           --INC
+			 Arith := unsigned(src1(31)&src1) + unsigned(ONE(31)&ONE); 
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);
-		elsif operation = 11 then result <= unsigned(src1) - unsigned(ONE);                          --DEC
-			 Arith := unsigned(src1(31)&src1) - unsigned(src2(31)&src2);         --SUB
+		elsif operation = 11 then                           --DEC
+			 Arith := unsigned(src1(31)&src1) - unsigned(ONE(31)&ONE);    
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);
 		elsif operation = 20 or operation = 21 or operation = 25 then result <= unsigned(src1) + unsigned(Two); --RET, RTI, pop
