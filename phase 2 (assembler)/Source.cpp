@@ -10,6 +10,7 @@ unordered_map <string, string> opcodes;
 unordered_map <string, string> registers;
 vector<string> binary_code(4096);
 int address = 0;
+string file_name;
 void assign_opcodes_and_reg() {
 	//2 operand operations
 	opcodes["SWAP"] = "0000000";
@@ -27,12 +28,12 @@ void assign_opcodes_and_reg() {
 	opcodes["INC"] = "0001010";
 	opcodes["DEC"] = "0001011";
 	opcodes["OUT"] = "0001100";
-	opcodes["IN"] =  "0001101";
+	opcodes["IN"] = "0001101";
 	//----------------------------
 	//branch and input signal
-	opcodes["JZ"] = "0010000000000";
-	opcodes["JMP"] = "0010001000000";
-	opcodes["CALL"] = "0010010000000";
+	opcodes["JZ"] = "0010000";
+	opcodes["JMP"] = "0010001";
+	opcodes["CALL"] = "0010010";
 	opcodes["RET"] = "0010100000000000";
 	opcodes["RTI"] = "0010101000000000";
 	opcodes["RESET"] = "0010110000000000";
@@ -385,7 +386,7 @@ void process_two_operand(string line, int position) {
 				immediate += line[i];
 			}
 			else if (comma_second_place && comma_first_place && isalpha(line[i])) {
-				cout << "error, the " << line[i] << " not a hex value in "<<line << endl;
+				cout << "error, the " << line[i] << " not a hex value in " << line << endl;
 				system("pause");
 				exit(0);
 			}
@@ -746,6 +747,7 @@ void process_branch_operation(string line, int position) {
 					exit(0);
 				}
 				code += registers[reg];
+				code += "000000";
 				break;
 			}
 		}
@@ -762,6 +764,7 @@ void process_branch_operation(string line, int position) {
 					exit(0);
 				}
 				code += registers[reg];
+				code += "000000";
 				break;
 			}
 		}
@@ -778,6 +781,7 @@ void process_branch_operation(string line, int position) {
 					exit(0);
 				}
 				code += registers[reg];
+				code += "000000";
 				break;
 			}
 		}
@@ -803,7 +807,7 @@ void process_input_signal_operand(string line, int position) {
 void process_line(string line) {
 	int k = 0;
 	string operation = "";
-	while (k<line.size() && line[k] != ' ') {
+	while (k < line.size() && line[k] != ' ') {
 		operation += line[k++];
 	}
 	int position; //hwa meen fe el operations of 1st,2nd,... 
@@ -831,21 +835,22 @@ void process_line(string line) {
 		//2ma b3d org deh 2w 7aga 8lt da5la
 		string digit = "";
 		for (int i = 0;i < line.size();++i) {
-			if (isdigit(line[i]) || line[i]=='A' || line[i] == 'B' || line[i] == 'C' || line[i] == 'D' || line[i] == 'E' || line[i] == 'F' || line[i] == 'a' || line[i] == 'b' || line[i] == 'c' || line[i] == 'd' || line[i] == 'e' || line[i] == 'f') {
+			if (isdigit(line[i]) || line[i] == 'A' || line[i] == 'B' || line[i] == 'C' || line[i] == 'D' || line[i] == 'E' || line[i] == 'F' || line[i] == 'a' || line[i] == 'b' || line[i] == 'c' || line[i] == 'd' || line[i] == 'e' || line[i] == 'f') {
 				digit += line[i];
 			}
 			else if (isalpha(line[i])) {
-				cout << "error at this line " << line<<endl;
+				cout << "error at this line " << line << endl;
 				cout << "the entered instruction is illegal or the number is not hexadecimal number";
 				system("pause");
 				exit(0);
 			}
+			else if (line[i] == '#' && digit.length() == 0)return;
 		}
 		if (digit.length() > 0) {
 			if (address == 0) {
 				binary_code[address++] = opcodes["LDM"] + registers["R0"];
 				binary_code[address++] = bitset<16>(hex2dec(digit)).to_string();
-				binary_code[address++] = opcodes["STD"] + registers["R0"]+"000000";
+				binary_code[address++] = opcodes["STD"] + registers["R0"] + "000000";
 				binary_code[address++] = "0000000000000000";
 			}
 			else if (address == 2) {
@@ -860,27 +865,37 @@ void process_line(string line) {
 			}
 		}
 		else {
-			cout << "error at this line " << line<<endl;
-			cout << "the entered instruction is illegal or the number is not hexadecimal number";
-			exit(0);
+			string detect_spaces = "";
+			for (int i = 0;i < line.size();++i) {
+				if (line[i] != ' ')
+					detect_spaces += line[i];
+			}
+			if (detect_spaces.size() != 0) {
+				if (detect_spaces[0] != '#') {
+					cout << "error at this line " << line << endl;
+					cout << "the entered instruction is illegal or the number is not hexadecimal number";
+					system("pause");
+					exit(0);
+				}
+			}
 		}
 	}
 }
 //----------------read file-----------------------
 void read_file_and_clean() {
-	cout << "please enter the file name without (.txt)"<<endl;
-	string file_name;
+	cout << "please enter the file name without (.txt)" << endl;
+	//string file_name;
 	string line;
 	getline(cin, file_name);
-	ifstream file(file_name+".txt");
+	ifstream file(file_name + ".txt");
 	int next_address;
 	if (file.is_open()) {
 		std::string line;
 		while (getline(file, line)) {
-			if (line == "")
+			if (line == "" )
 				continue;
 			if (line[0] == '#')continue; //comment
-			if (line[0] == '.'&& (line[1] == 'O' || line[1] == 'o')) { //.org
+			if (line[0] == '.' && (line[1] == 'O' || line[1] == 'o')) { //.org
 				string org_num = "";
 				for (int i = 5;i < line.size();++i) {
 					if (line[i] == '#')break;
@@ -903,14 +918,14 @@ void read_file_and_clean() {
 //------------------ write assembled file --------------------
 
 void write_assembled_file() {
-	ofstream file("assembled file.txt");
+	ofstream file(file_name + " assembled file.txt");
 	file << "SIGNAL ram : ram_type := (" << endl;
 	if (file.is_open()) {
 		for (int i = 0;i < address;++i) {
 			if (!(binary_code[i].size() == 0))
-				file << i << "=> \"" <<binary_code[i] << "\" ," <<endl;
+				file << i << "=> \"" << binary_code[i] << "\" ," << endl;
 			else
-				file << i << "=> \"" << "0000000000000000" << "\" ," << endl;
+				file << i << "=> \"" << opcodes["NOP"] << "\" ," << endl;
 		}
 	}
 	if (address != 4095) {
@@ -926,5 +941,3 @@ int main() {
 	system("pause");
 	return 0;
 }
-
-//2zbot el address, org , write el code fe file
