@@ -1,5 +1,6 @@
 library ieee;
 USE ieee.std_logic_1164.ALL;
+use work.regFilePackage.all;
 
 Entity processor is 
 	port( clk, rst, Interrupt   : IN  std_logic;
@@ -9,10 +10,14 @@ Entity processor is
 End processor;
 
 Architecture pipeline of processor is
+-- Signals for simulation
+signal registerfile: ram_type;
+signal PC_out, SP_out: std_logic_vector(31 downto 0);
+signal flagRegister_CNZ: std_logic_vector(2 downto 0);
 
 --signals from IF/ID buffer
 signal  En_IF_ID, rst_IF_ID : std_logic;
-signal  PC_out, PC_Adder_out : std_logic_vector(31 downto 0);
+signal  PC_Adder_out : std_logic_vector(31 downto 0);
 signal	IR_out, Imm_val_out : std_logic_vector(15 downto 0);
 signal	Branch_out  : std_logic;
 signal	pred_bits_out : std_logic_vector( 1 downto 0);
@@ -86,14 +91,15 @@ IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, '0', control_Signa
 						PC_out, PC_Adder_out, IR_out, Imm_val_out, Branch_out, pred_bits_out, RESET_out, INT_out);
 
 DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, stallAtDec, Rdst_Mem_WB_Q,IR(8 downto 6),
-						WriteBkReg, R1, R2, R_br, control_Signals2, control_Signals, Rdest);
+						WriteBkReg, R1, R2, R_br, control_Signals2, control_Signals, Rdest, registerfile);
 ID_EX_buffer:entity work.ID_EX_BUFFER port map(clk, En_ID_EX_buffer, RESET_out, INT_out, IR_out(13 downto 3), PC_out, PC_Adder_out, R1, R2, 
 						control_Signals, control_Signals2, Rdest, Branch_out, pred_bits_out, codes, PC, PCNew, Rsrc1, Rsrc2, controlSignals,
 						  controlSignals2, Rdst_ID_EX_Q, branch,  rst_ID_EX_Q, interrupt_ID_EX_Q, PredBits_ID_EX);
 
 ExecuteLabel:  entity work.execute port map(controlSignals(4 downto 0), controlSIgnals2, PC, PCNew, Rsrc1, Rsrc2, inPort, ReadDatafromMem, clk, rst_ID_EX_Q, interrupt_ID_EX_Q, 
 					    branch, LDflags, PredBits_ID_EX, codes(10 downto 6), codes(5 downto 0), Rdst_EX_Mem_Q, Rdst_Mem_WB_Q, WriteBack, sigOut_EX_Mem_Q(1),
-						 enableFU, ALUout_Q, ALUoutFromWB, NewBits, sigOut_EX_Mem_D, OutPort, ALUout, WriteData, FPreg, BR_Add_reg, BR_Add_sig, falsePrediction); 
+						 enableFU, ALUout_Q, ALUoutFromWB, NewBits, sigOut_EX_Mem_D, OutPort, ALUout, WriteData, FPreg, BR_Add_reg, BR_Add_sig, falsePrediction,
+							SP_out, flagRegister_CNZ); 
 EX_MemBuffer:  entity work.EX_Mem_Buffer port map(clk, stallAll, rst_intr_ID_EX_Q, sigOut_EX_Mem_D, ALUout, WriteData, Rdst_ID_EX_Q, rst_intr_EX_Mem_Q,
 						  sigOut_EX_Mem_Q, ALUout_Q, WriteData_Q, Rdst_EX_Mem_Q);
 

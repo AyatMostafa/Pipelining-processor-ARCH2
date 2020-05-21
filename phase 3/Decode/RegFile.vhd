@@ -1,6 +1,14 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+
+package regFilePackage is
+	type ram_type is array (0 to 2**3 - 1) of std_logic_vector (31 downto 0);
+end package;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
 use IEEE.Numeric_Std.all;
+use work.regFilePackage.all;
 
 entity RegFile is
      port (
@@ -9,18 +17,13 @@ entity RegFile is
 	clk, we, rst : IN std_logic;
 	write_reg: IN std_logic_vector(2 downto 0);
 	write_data: IN std_logic_vector(31 downto 0);
-	DataR1, DataR2, Databr : OUT std_logic_vector(31 downto 0)
+	DataR1, DataR2, Databr : OUT std_logic_vector(31 downto 0);
+	RegsOut : out ram_type 
 	);
 end RegFile;
 
 architecture arch2 of RegFile is
-
-	type ram_type is array (0 to 2**3 - 1) of std_logic_vector (31 downto 0);
-	
-	signal ram : ram_type := (
-		others => (others => '0')
-	);
-	
+signal ram : ram_type := (others => (others => '0'));
 begin
 	PROCESS(clk, rst) IS
 	BEGIN
@@ -34,6 +37,6 @@ begin
 	DataR1 <= ram(to_integer(unsigned(R1)));
 	DataR2 <= ram(to_integer(unsigned(R2)));
 	Databr <= ram(to_integer(unsigned(R_br)));
-	
+	RegsOut<= ram;
 end arch2;
 

@@ -103,7 +103,9 @@ Entity execute is
 	      NewBits       :  OUT std_logic_vector(1 downto 0);
 	      SignalsOUT    :  OUT std_logic_vector(7 downto 0);
 	      OutputPort, ALUoutput, WriteData, FPReg, R_br_fetch: out std_logic_vector(31 downto 0);
-	      ifJZ, falsepredictioninBR: OUT std_logic);
+	      ifJZ, falsepredictioninBR: OUT std_logic;
+	      SP           : out std_logic_vector(31 downto 0);
+	      FR           : out std_logic_vector(2 downto 0));
 End execute;
 
 ARCHITECTURE ExecStage OF execute IS
@@ -140,14 +142,16 @@ R_br_fetch <= PC;
 ifJZSig <= OpCode(4) and not(OpCode(3)) and not(OpCode(2)) and not(OpCode(1)) and not(OpCode(0));
 falsepredictioninBR<=falseprediction and ifJZSig;
 ifJZ <= ifJZSig;
+Sp<=SPMain;
+FR<=CCR;
 process(OUTSIgnal, Rsrc1)
 begin
 	if (OUTSIgnal = '1') then OutputPort <= Rsrc1; end if;
 end process;
 -- Forwarding Unit
-FULabel: entity work.EFU port map (clk, enableFU, SWAP, RADD(5 downto 3), RADD(2 downto 0), Rdst_exec, Rdst_mem, wb_mem, wb_exec, mx1, mx2);
+FULabel: entity work.EFU port map (enableFU, SWAP, RADD(5 downto 3), RADD(2 downto 0), Rdst_exec, Rdst_mem, wb_mem, wb_exec, mx1, mx2);
 R1FUMux: entity work.three_input_mux port map(Rsrcc1, Data_mem, Data_ex, mx1, Rsrc1);
-R2FUMux: entity work.three_input_mux port map(Rsrcc2, Data_mem, Data_ex, mx2, Rsrc2);
+R2FUMux: entity work.three_input_mux port map(Rsrcc2, Data_ex, Data_mem, mx2, Rsrc2);
 End ExecStage;
 
 -- EX/Mem buffer

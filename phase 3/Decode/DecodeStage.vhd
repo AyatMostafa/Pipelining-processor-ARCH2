@@ -1,5 +1,6 @@
 Library ieee;
 use ieee.std_logic_1164.all;
+use work.regFilePackage.all;
 
 entity DecodeStage is
 	port( IR, Imm_val : IN std_logic_vector(15 downto 0);
@@ -9,7 +10,8 @@ entity DecodeStage is
 	      R1, R2, R_br: OUT std_logic_vector(31 downto 0);
 	      controlSignals2 :  out std_logic_vector(11 downto 0);
 	      controlSignals  :  out std_logic_vector(7 downto 0);
-	      Rdest:  out std_logic_vector(2 downto 0));
+	      Rdest:  out std_logic_vector(2 downto 0);
+	      RegfileOut: out ram_type);
 end entity;
 
 Architecture decStage of DecodeStage is
@@ -22,7 +24,7 @@ Begin
 CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, clk, rst, signals2, signals);
 signals2L: entity work.twoInpMux generic map(12) port map (signals2, "000000000000", stall, controlSignals2);
 signalsL:  entity work.twoInpMux generic map(8) port map (signals,"00000000", stall, controlSignals);
-FileRegL : ENTITY work.RegFile PORT MAP(IR(8 downto 6), IR(5 downto 3), Add_BR_Reg, clk, WriteReg, rst, Rwrite, writeData, R1, R2Temp, R_br);
+FileRegL : ENTITY work.RegFile PORT MAP(IR(8 downto 6), IR(5 downto 3), Add_BR_Reg, clk, WriteReg, rst, Rwrite, writeData, R1, R2Temp, R_br,RegfileOut);
 extended1 <= zeros & Imm_val;
 extended2 <= ones & Imm_val;
 extendedL: entity work.twoInpMux port map (extended1, extended2, Imm_val(15), extendedIMM);
