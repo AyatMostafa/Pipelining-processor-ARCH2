@@ -23,7 +23,7 @@ architecture Behavioral of DFU is
 begin
 
 
-PROCESS(clk) IS
+PROCESS IS
 
 BEGIN
 
