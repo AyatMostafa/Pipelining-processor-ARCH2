@@ -93,7 +93,7 @@ FetchLabel: ENTITY work.FetchStage port map(CLK, '0', control_Signals(6), falseP
 IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, '0', control_Signals(7), FE_PC_out, FE_PCAdder, IR, Imm_value, IsBranch, Prediction, rst, Interrupt, 
 						PC_out, PC_Adder_out, IR_out, Imm_val_out, Branch_out, pred_bits_out, RESET_out, INT_out);
 
-DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, stallAtDec,'0',sigOut_EX_Mem_Q(1),controlSignals(1),controlSignals(3),      
+DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, stallAtDec,'0',falsePrediction,sigOut_EX_Mem_Q(1),controlSignals(1),controlSignals(3),      
 						Rdst_Mem_WB_Q , IR(8 downto 6),Rdst_ID_EX_Q,Rdst_EX_Mem_Q,
 						WriteBkReg, R1, R2, R_br, control_Signals2, control_Signals, Rdest, registerfile);
 ID_EX_buffer:entity work.ID_EX_BUFFER port map(clk, En_ID_EX_buffer, RESET_out, INT_out, IR_out(13 downto 3), PC_out, PC_Adder_out, R1, R2, 
