@@ -6,6 +6,7 @@ use ieee.std_logic_unsigned.all;
 entity counter is Port ( 
 	clk : in STD_LOGIC;
 	reset: in STD_LOGIC;  --intrupt signal
+	limit: IN std_logic_vector(2 downto 0);
 	count : OUT std_logic
 	);
 end counter;
@@ -24,8 +25,8 @@ if (reset = '1') then
 	sigCame:=1;
 elsif (rising_edge(clk)) then
     	if sigCame=1 then
-		if (l_count = "010") then
-			l_count <= "010";
+		if (l_count = limit) then
+			l_count <= limit;
 			count <= '0';
 			sigCame:=0;
 		else

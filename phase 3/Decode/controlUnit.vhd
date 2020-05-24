@@ -25,8 +25,8 @@ architecture CUFlow of controlUnit is
         signal intript, rstSig : std_logic;
 begin
 
-  counter: entity work.counter port map ( Clk,int,intript);
-  rstCounter: entity work.counter port map(Clk, rst, rstSig);
+  counter: entity work.counter port map ( Clk,int,"010", intript);
+  rstCounter: entity work.counter port map(Clk, rst, "010", rstSig);
   SM     : entity work.stateMachine port map ( input,Clk,rst,output);
 
 	process(IfBranch, opcode, int, rst, intript, rstSig)

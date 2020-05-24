@@ -5,7 +5,7 @@ use work.regFilePackage.all;
 
 entity DecodeStage is
 	port( IR, Imm_val : IN std_logic_vector(15 downto 0);
-	      clk, Branch, rst, interrupt,   WriteReg, FE_stall,enable ,falseprediction,Wb_memory,wb_excute ,IDEX_MemRead: IN std_logic;
+	      clk, Branch, rst, interrupt,   WriteReg, FE_stall,enableFU, enableHU ,falseprediction,Wb_memory,wb_excute ,IDEX_MemRead: IN std_logic;
 	      Rwrite, Add_BR_Reg,ID_EX_Rdst,Memory_Rdst: IN std_logic_vector(2 downto 0);
 	      
 	      writeData: IN std_logic_vector(31 downto 0);
@@ -28,7 +28,7 @@ constant ones: std_logic_vector(15 downto 0):="1111111111111111";
 signal stall_result: std_logic;
 Begin
 
-Hazard_Unit : ENTITY work.Hazard_Load_case PORT MAP(enable, IDEX_MemRead , ID_EX_Rdst ,IR(8 downto 6) , IR(5 downto 3),stall_hazard);
+Hazard_Unit : ENTITY work.Hazard_Load_case PORT MAP(enableHU, IDEX_MemRead , ID_EX_Rdst ,IR(8 downto 6) , IR(5 downto 3),stall_hazard);
 
 FileRegL : ENTITY work.RegFile PORT MAP(IR(8 downto 6), IR(5 downto 3), Add_BR_Reg, clk, WriteReg, rst, Rwrite, writeData, R1, R2Temp, R_br,RegfileOut);
 CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, clk, rst, signals2, signals);
@@ -42,8 +42,8 @@ sndOpMuxL: entity work.twoInpMux port map (extendedIMM, R2Temp, signals(5), R2);
 RdestMuxL: entity work.twoInpMux generic map(3) port map (IR(2 downto 0), IR(8 downto 6), signals2(3), Rdest);
 
 
-Forwarding_Unit : ENTITY work.DFU PORT MAP( enable , IR(2 downto 0), ID_EX_Rdst,Memory_Rdst,Wb_memory,wb_excute,FU_output);
-Rdst_Mux : ENTITY work.three_input_mux Port Map( IR(2 downto 0), Memory_Rdst, ID_EX_Rdst  ,FU_output ,Rdest);
+Forwarding_Unit : ENTITY work.DFU PORT MAP( enableFU , IR(2 downto 0), ID_EX_Rdst,Memory_Rdst,Wb_memory,wb_excute,FU_output);
+Rdst_Mux : ENTITY work.three_input_mux generic map (3) Port Map( IR(2 downto 0), Memory_Rdst, ID_EX_Rdst  ,FU_output ,Rdest);
 	
 
 end Architecture;
