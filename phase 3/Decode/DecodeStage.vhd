@@ -5,14 +5,16 @@ use work.regFilePackage.all;
 
 entity DecodeStage is
 	port( IR, Imm_val : IN std_logic_vector(15 downto 0);
-	      clk, Branch, rst, interrupt, WriteReg, stall,enable ,Wb_memory,wb_excute ,IDEX_MemRead: IN std_logic;
+	      clk, Branch, rst, interrupt,   WriteReg, stall,enable ,Wb_memory,wb_excute ,IDEX_MemRead: IN std_logic;
 	      Rwrite, Add_BR_Reg,ID_EX_Rdst,Memory_Rdst: IN std_logic_vector(2 downto 0);
+	      
 	      writeData: IN std_logic_vector(31 downto 0);
 	      R1, R2, R_br: OUT std_logic_vector(31 downto 0);
 	      controlSignals2 :  out std_logic_vector(11 downto 0);
 	      controlSignals  :  out std_logic_vector(7 downto 0);
 	      Rdest:  out std_logic_vector(2 downto 0);
-	      RegfileOut: out ram_type);
+	      RegfileOut: out ram_type
+		);
 end entity;
 
 Architecture decStage of DecodeStage is
