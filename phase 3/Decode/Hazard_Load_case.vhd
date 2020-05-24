@@ -15,7 +15,7 @@ ARCHITECTURE Hazard_arch OF Hazard_Load_case IS
 BEGIN
    	
 
-    process
+    process(enable)
     BEGIN
 if (enable='1') then
 	if(ID_EX_MemRead = '1')and (ID_EX_Rt = IF_ID_S1 or ID_EX_Rt = IF_ID_S2) then

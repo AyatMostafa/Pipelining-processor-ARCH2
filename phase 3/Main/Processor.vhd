@@ -83,10 +83,10 @@ stallAtDec <= stall or stallAll;
 rst_intr_ID_EX_Q<= rst_ID_EX_Q & interrupt_ID_EX_Q ;
 En_ID_EX_buffer <= not (stallAll);
 En_IF_ID <= not(stallAtDec);
-FetchLabel: ENTITY work.FetchStage port map(CLK, '0', control_Signals(6), falsePrediction, 
+FetchLabel: ENTITY work.FetchStage port map(CLK, '0', control_Signals(6), '0', 
 						control_Signals(1),control_Signals(3),controlSignals(3),controlSignals(1),sigOut_EX_Mem_Q(2),
-						Rdst_ID_EX_Q,Rdest,Rdst_EX_Mem_Q,rst_ID_EX_Q,Rdst_EX_Mem_Q,
-						LDPC, FPReg, ReadDatafromMem, R_br, BR_Add_reg, NewBits, BR_Add_sig,
+						Rdst_ID_EX_Q,Rdest,Rdst_EX_Mem_Q,
+						falsePrediction,LDPC, FPReg, ReadDatafromMem, R_br, BR_Add_reg, NewBits, BR_Add_sig,
 					     IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction,stall);
 
 

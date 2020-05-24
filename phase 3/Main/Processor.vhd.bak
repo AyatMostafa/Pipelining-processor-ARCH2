@@ -75,7 +75,7 @@ signal ALUoutFromWB, ReadDatafromWB, WriteBkReg : std_logic_vector(31 downto 0);
 signal enableFU: std_logic;
 
 Begin
-enableFU <= '0';
+enableFU <= '1';
 stallAll <='0';
 WriteBack<= WBsignals(1);
 MTReg<= WBsignals(0);
@@ -83,14 +83,18 @@ stallAtDec <= stall or stallAll;
 rst_intr_ID_EX_Q<= rst_ID_EX_Q & interrupt_ID_EX_Q ;
 En_ID_EX_buffer <= not (stallAll);
 En_IF_ID <= not(stallAtDec);
-FetchLabel: ENTITY work.FetchStage port map(CLK, '0', control_Signals(6), falsePrediction, LDPC, FPReg, ReadDatafromMem, R_br, BR_Add_reg, NewBits, BR_Add_sig,
+FetchLabel: ENTITY work.FetchStage port map(CLK, '0', control_Signals(6), '0', 
+						control_Signals(1),control_Signals(3),controlSignals(3),controlSignals(1),sigOut_EX_Mem_Q(2),
+						Rdst_ID_EX_Q,Rdest,Rdst_EX_Mem_Q,
+						falsePrediction,LDPC, FPReg, ReadDatafromMem, R_br, BR_Add_reg, NewBits, BR_Add_sig,
 					     IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction,stall);
 
 
 IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, '0', control_Signals(7), FE_PC_out, FE_PCAdder, IR, Imm_value, IsBranch, Prediction, rst, Interrupt, 
 						PC_out, PC_Adder_out, IR_out, Imm_val_out, Branch_out, pred_bits_out, RESET_out, INT_out);
 
-DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, stallAtDec, Rdst_Mem_WB_Q,IR(8 downto 6),
+DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, stallAtDec,'0',falsePrediction,sigOut_EX_Mem_Q(1),controlSignals(1),controlSignals(3),      
+						Rdst_Mem_WB_Q , IR(8 downto 6),Rdst_ID_EX_Q,Rdst_EX_Mem_Q,
 						WriteBkReg, R1, R2, R_br, control_Signals2, control_Signals, Rdest, registerfile);
 ID_EX_buffer:entity work.ID_EX_BUFFER port map(clk, En_ID_EX_buffer, RESET_out, INT_out, IR_out(13 downto 3), PC_out, PC_Adder_out, R1, R2, 
 						control_Signals, control_Signals2, Rdest, Branch_out, pred_bits_out, codes, PC, PCNew, Rsrc1, Rsrc2, controlSignals,

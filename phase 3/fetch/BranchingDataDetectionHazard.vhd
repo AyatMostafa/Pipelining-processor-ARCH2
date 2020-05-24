@@ -17,14 +17,14 @@ entity BranchingDataDetectionHazard is
 	ID_EX_Rdst  :IN std_logic_vector(2 downto 0);
 	IF_ID_Rdst  :IN std_logic_vector(2 downto 0);
 	EX_Mem_Rdst :IN std_logic_vector(2 downto 0);
-	stall  : out std_logic
+	stall 	    : out std_logic
 	);
 end BranchingDataDetectionHazard;
 
 architecture BDDH_Flow of BranchingDataDetectionHazard is
 
 begin
-    process
+    process(enable)
     BEGIN
 if (enable='1') then
     if(opCode ="10000") or (opCode ="10001")or (opCode ="10010") then --jz jump call
