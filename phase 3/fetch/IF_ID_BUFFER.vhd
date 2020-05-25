@@ -9,13 +9,13 @@ entity IF_ID_BUFFER is
 	IR, Imm_val : IN std_logic_vector(15 downto 0);
 	Branch  : IN std_logic;
 	pred_bits : IN std_logic_vector( 1 downto 0);
-	RESET, INT : IN std_logic;
+	RESET, INT, stall : IN std_logic;
 	
 	PC_out, PCAdder_out : out std_logic_vector(31 downto 0);
 	IR_out, Imm_val_out : Out std_logic_vector(15 downto 0);
 	Branch_out  : Out std_logic;
 	pred_bits_out : Out std_logic_vector( 1 downto 0);
-	RESET_out, INT_out : out std_logic
+	RESET_out, INT_out, stallOut : out std_logic
 	);
 end IF_ID_BUFFER;
 
@@ -37,11 +37,12 @@ begin
                 Branch_out	<= '0';
 		RESET_out <= '0';
 		INT_out   <= '0';
-				
+		stallOut <= '0';	
             ELSIF we='1' THEN
                 Branch_out <= Branch;
 		RESET_out <= RESET;
 		INT_out   <= INT;
+		stallOut  <= stall;
             END IF;
         END IF;
     END PROCESS;

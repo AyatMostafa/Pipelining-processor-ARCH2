@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 entity EFU is
 Port ( 
---clk : IN std_logic;
+clk : IN std_logic;
 enable : in std_logic;
 if_swap : in std_logic;
 Rsr1 : in STD_LOGIC_VECTOR (2 downto 0);
@@ -25,7 +25,7 @@ architecture Behavioral of EFU is
 --signal mx2 : STD_LOGIC_VECTOR (1 downto 0):="00";
 begin
 
-PROCESS(enable, wb_exec, Rsr1, Rdst_exec, wb_mem, Rdst_mem, Rsr2) IS
+PROCESS(clk,enable, wb_exec, Rsr1, Rdst_exec, wb_mem, Rdst_mem, Rsr2) IS
 
 BEGIN
 
@@ -43,10 +43,11 @@ if enable = '1' then
 
      else
 
-       mux1 <= "00";
+	 mux1 <= "00";
+       
 
      END IF;
-
+	
      IF wb_exec = '1' and (Rsr2(0)=Rdst_exec(0) and Rsr2(1)=Rdst_exec(1) and Rsr2(2)=Rdst_exec(2)) and if_swap='0' THEN
      
         mux2 <= "01";
@@ -56,7 +57,8 @@ if enable = '1' then
          mux2 <= "10";
      else
 
-         mux2 <= "00";
+	mux2 <= "00";
+         
 
      END IF;
 

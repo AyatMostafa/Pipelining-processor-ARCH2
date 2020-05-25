@@ -1,0 +1,2 @@
+SIGNAL ram : ram_type := (
+OTHERS=>X"0000");

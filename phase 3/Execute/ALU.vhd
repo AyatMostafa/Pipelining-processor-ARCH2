@@ -92,11 +92,11 @@ Begin
 		elsif RST = '1' then CCRValue(2) <= '0'; elsif fromMem ='1' then CCRValue(2) <= flags(2);
 		elsif operation = 0 then if Swap = '0' then result <= src1; else result <= src2; end if;     --SWAP
 		elsif operation = 1 or operation = 2 then                                                    --ADD, IADD
-			 Arith := unsigned(src1(31)&src1) + unsigned(src2(31)&src2); 
+			 Arith := unsigned('0'&src1) + unsigned('0'&src2); 
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);	
 		elsif operation = 3 then
-			 Arith := unsigned(src1(31)&src1) - unsigned(src2(31)&src2);         --SUB
+			 Arith := unsigned('1'&src1) - unsigned('0'&src2);         --SUB
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);	
 		elsif operation = 4 then result <= src1 and src2;                                            --AND
@@ -106,11 +106,11 @@ Begin
 		-- (8==> NOP    12==> OUT    13==> IN )
 		elsif operation = 9  then result <= not (src1);                                              --NOT
 		elsif operation = 10 then                           --INC
-			 Arith := unsigned(src1(31)&src1) + unsigned(ONE(31)&ONE); 
+			 Arith := unsigned('0'&src1) + unsigned('0'&ONE); 
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);
 		elsif operation = 11 then                           --DEC
-			 Arith := unsigned(src1(31)&src1) - unsigned(ONE(31)&ONE);    
+			 Arith := unsigned('1'&src1) - unsigned('0'&ONE);    
 			 result<= Arith (31 downto 0); 
 			 CCRValue(2) <= Arith(32);
 		elsif operation = 20 or operation = 21 or operation = 25 then result <= unsigned(src1) + unsigned(Two); --RET, RTI, pop

@@ -5,9 +5,14 @@ use IEEE.Numeric_Std.all;
 entity FetchStage is
      port (
 	  CLK: in std_logic;	
+	  enable_in: in std_logic;	
 	  PC_RST : in std_logic;
 	  disable_pc : in std_logic;
-	  wrong_P_signal , Mem_PC_signal : in std_logic;
+	 
+	 Decode_WB , Decode_MR ,ID_EX_MR ,ID_EX_WB ,EX_Mem_MR  : in std_logic;
+	  ID_EX_Rdst ,IF_ID_Rdst ,EX_Mem_Rdst  : in std_logic_vector(2 downto 0);
+	 
+ 	wrong_P_signal , Mem_PC_signal : in std_logic;
 	  PC_exec, Pc_mem, PC_decode: in std_logic_vector(31 downto 0);
 	  address_for_p : in std_logic_vector(31 downto 0);
 	  new_state_p  : in std_logic_vector(1 downto 0);
@@ -21,6 +26,9 @@ entity FetchStage is
 	  stall: out std_logic
 	);
 end FetchStage;
+
+
+
 
 architecture arch_fetch of FetchStage is
 signal PC_normal, PC_out_MUX, PC_out: std_logic_vector(31 downto 0);
@@ -43,6 +51,8 @@ begin
 	memory : ENTITY work.InstrMemory PORT MAP(PC_out, address_for_p, WE_P, CLK, new_state_p, IR_out);
 
 	control_branch : ENTITY work.ControlBranch Port Map(IR_out, Clk, istaken, ifJz);
+	
+	Branching_Data_hazard : ENTITY work.BranchingDataDetectionHazard Port Map(enable_in, IR_out(13 downto 9), IR_out(2 downto 0),  Decode_WB , Decode_MR ,ID_EX_MR ,ID_EX_WB ,EX_Mem_MR ,ID_EX_Rdst ,IF_ID_Rdst ,EX_Mem_Rdst,stall_hazard);
 	
 	stall_hazard<='0';
 	IR <= IR_out;
