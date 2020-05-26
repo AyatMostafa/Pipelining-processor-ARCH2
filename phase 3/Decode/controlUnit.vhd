@@ -25,7 +25,7 @@ architecture CUFlow of controlUnit is
         signal intript, rstSig : std_logic;
 begin
 
-  counter: entity work.counter port map ( Clk,int,"010", intript);
+  --counter: entity work.counter port map ( Clk,int,"010", intript);
   rstCounter: entity work.counter port map(Clk, rst, "010", rstSig);
   SM     : entity work.stateMachine port map ( input,Clk,rst,output);
 
@@ -46,10 +46,10 @@ begin
 	begin 
 		controlSignals2 <= "000000000000"; 
 		--FetchEnable<='0';
-		if(opcode="10010") then
+		if(opcode="10010") then       -- Call
 			controlSignals2(9) <= '1';
-		end if; 	 	
-		if(output = "00") then
+ 	 		controlSignals <= "11000000";
+		elsif(output = "00") then
 			if (intript = '1') or (int ='1') or rst='1' or rstSig='1' then
 				controlSignals <= "00001000";
 			elsif(IfBranch = '1') then
@@ -99,7 +99,7 @@ begin
 				controlSignals <= "11001011";
 				controlSignals2(2) <= '1';
 			elsif (opcode = "11110") then       --STD
-				controlSignals <= "11100100";
+				controlSignals <= "11000100";
 				controlSignals2(2) <= '1';
 			elsif (opcode = "00000") then 
 				controlSignals <= "11100010"; --swap--

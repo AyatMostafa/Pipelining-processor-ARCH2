@@ -81,7 +81,7 @@ ARCHITECTURE BRhandling OF BRexeceution_Prediction IS
 Begin
 	F(1) <= (b(1) and b(0)) or (b(1) and ZeroFlag) or (b(0) and ZeroFlag);
 	F(0) <= (b(1) and not(b(0))) or (b(1) and ZeroFlag) or (not(b(0)) and ZeroFlag);
-	FP   <= branch and((b(1) and not(ZeroFlag)) or (b(0) and ZeroFlag));
+	FP   <= branch and((b(1) and not(ZeroFlag)) or (not(b(1)) and ZeroFlag));
 End ARCHITECTURE;
 
 --Execute Stage
@@ -110,6 +110,7 @@ End execute;
 
 ARCHITECTURE ExecStage OF execute IS
 signal CCR: std_logic_vector(2 downto 0);
+signal ZFlag: std_logic_vector(0 downto 0);
 signal ALUResult, R1, SPMain, SPTemp: std_logic_vector(31 downto 0);
 signal falseprediction, ifJZSig: std_logic;
 
@@ -133,9 +134,10 @@ ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, 
 SP_Label : entity work.SP port map(ALUResult, SPsignal, clk, SPMain, rst);
 SP_Temp:   entity work.SP port map(SPMain,'1',clk, SPTemp, rst);
 R1Mux:     entity work.twoInpMux port map(Rsrc1, SPMain, SPsignal, R1);
-ALUoutMux: entity work.threeInpMux port map(ALUResult, InputPORT, SPTemp, Insignal, oldSP, ALUoutput);
+--ALUoutMux: entity work.threeInpMux port map(ALUResult, InputPORT, SPTemp, Insignal, oldSP, ALUoutput);
+ALUoutMux: entity work.FourInpMux port map(InputPORT, SPTemp, SPMain, ALUResult, Insignal, oldSP, SPsignal, ALUoutput);
 DataWrtmux:entity work.FourInpMux port map(PC, PCNew,flags32, Rsrc1, IntPC, Call, intFlag, WriteData);
-BRanchCirc:entity work.BRexeceution_Prediction port map(branch, CCR(0), predictionBits, NewBits, falseprediction); 
+BRanchCirc:entity work.BRexeceution_Prediction port map(branch, Zflag(0), predictionBits, NewBits, falseprediction); 
 FPRdestlBL:entity work.twoInpMux port map(Rsrc1, PCNew, predictionBits(1), FPReg);
 SignalsOUT <= rti&ret&EAH&fromEA&we&re&WB&fromMemToReg;
 R_br_fetch <= PC;
@@ -145,6 +147,7 @@ falsepredictioninBR<=FalsePredSignal;
 ifJZ <= ifJZSig;
 Sp<=SPMain;
 FR<=CCR;
+ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), '1', clk, Zflag, rst); 
 flushCounter: entity work.counter port map (Clk,FalsePredSignal,"001", flush);
 process(OUTSIgnal, Rsrc1)
 begin

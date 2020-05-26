@@ -45,9 +45,9 @@ begin
 	BEGIN
 	IF rising_edge(clk) THEN
 	     IF we = '1' THEN
-		temp <= ram(to_integer(unsigned(address(10 downto 0))));
-		temp <= newState & temp(13 downto 0);
-		ram(to_integer(unsigned(address(10 downto 0)))) <= temp;
+		--temp <= ram(to_integer(unsigned(address(10 downto 0))));
+		--temp <= newState & temp(13 downto 0);
+		ram(to_integer(unsigned(address(10 downto 0))))(15 downto 14) <= newState;
 	     END IF;
 	END IF;
 	END PROCESS;

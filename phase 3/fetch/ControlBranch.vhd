@@ -19,12 +19,13 @@ signal R1, R2 : std_logic_vector(31 downto 0);
 begin
 	process(IR) is
 	begin
-	   if IR(15 downto 11) = "10000"  Then   -- JZ
+	   ifBranch <= '0'; ifJZ <= '0';
+	   if IR(13 downto 9) = "10000"  Then   -- JZ
 		if IR(15 downto 14) = "10" OR IR(15 downto 14) = "11" then
 			ifBranch <= '1';
 		end IF;
 	        ifJZ <= '1';
-	   ELSIF IR(15 downto 11) = "10001" OR IR(15 downto 11) = "10010" THEN -- JMP OR CALL
+	   ELSIF IR(13 downto 9) = "10001" OR IR(13 downto 9) = "10010" THEN -- JMP OR CALL
 		ifBranch <= '1';
 	   END IF;
 	END PROCESS;	

@@ -24,7 +24,7 @@ end BranchingDataDetectionHazard;
 architecture BDDH_Flow of BranchingDataDetectionHazard is
 
 begin
-    process(enable)
+    process(enable, opCode, Decode_MR, ID_EX_MR, EX_Mem_MR, Rdst, ID_EX_Rdst, IF_ID_Rdst, EX_Mem_Rdst, Decode_WB, ID_EX_WB)
     BEGIN
 if (enable='1') then
     if(opCode ="10000") or (opCode ="10001")or (opCode ="10010") then --jz jump call
@@ -40,6 +40,8 @@ if (enable='1') then
 		stall<='0';
 	end if;
     end if;
+else
+	stall <= '0';
 end if;
      END PROCESS;
 end BDDH_Flow;

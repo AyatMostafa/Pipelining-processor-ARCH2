@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 entity DFU is
 Port ( 
---clk : IN std_logic;
+clk : IN std_logic;
 enable : in std_logic;
 Rdest_JZ : in STD_LOGIC_VECTOR (2 downto 0);
 Rdst_exec : in STD_LOGIC_VECTOR (2 downto 0);
@@ -23,7 +23,7 @@ architecture Behavioral of DFU is
 begin
 
 
-PROCESS IS
+PROCESS(clk) IS
 
 BEGIN
 

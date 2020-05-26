@@ -22,8 +22,8 @@ entity FetchStage is
 	  PC : Out std_logic_vector(31 downto 0);
 	  PCAdder : Out std_logic_vector(31 downto 0);
 	  IsBranch : out std_logic;
-	  Prediction: out std_logic_vector(1 downto 0);
-	  stall: out std_logic
+	  Prediction: out std_logic_vector(1 downto 0)
+	  --stall: out std_logic
 	);
 end FetchStage;
 
@@ -33,12 +33,12 @@ end FetchStage;
 architecture arch_fetch of FetchStage is
 signal PC_normal, PC_out_MUX, PC_out: std_logic_vector(31 downto 0);
 signal selector : std_logic_vector(1 downto 0);
-signal istaken, ifJz: std_logic; -- in all cases of branching
+signal istaken, ifJz, stall: std_logic; -- in all cases of branching
 signal stall_hazard , Enable : std_logic;
 signal IR_out : std_logic_vector(15 downto 0);
 
 begin 
-	PCEnable : ENTITY work.GetPCEnable PORT MAP( disable_pc , wrong_P_signal , stall_hazard , Enable);
+	PCEnable : ENTITY work.GetPCEnable PORT MAP( disable_pc, stall_hazard , Enable);
 
 	PCReg1 : ENTITY work.PCReg PORT MAP( PC_out_MUX, clk, PC_RST, Enable , PC_out);
 	
