@@ -12,7 +12,7 @@ entity ID_EX_BUFFER is
 	controlSignals1 : IN std_logic_vector(7 downto 0);
 	controlSignals2 : IN std_logic_vector(11 downto 0);
 	Rdst : IN std_logic_vector(2 downto 0);
-	Branch  : IN std_logic;
+	Branch, stall  : IN std_logic;
 	predBitsIN: IN std_logic_vector(1 downto 0);
 
 
@@ -23,7 +23,7 @@ entity ID_EX_BUFFER is
 	controlSignals1_out : out std_logic_vector(7 downto 0);
 	controlSignals2_out : out std_logic_vector(11 downto 0);
 	Rdst_out : out std_logic_vector(2 downto 0);
-	Branch_out, rst_out, int_out  : out std_logic;
+	Branch_out, rst_out, int_out, stallout  : out std_logic;
 	predBitsOUT: OUT std_logic_vector(1 downto 0)
 	);
 end ID_EX_BUFFER;
@@ -53,7 +53,7 @@ begin
                 Branch_out <= Branch;
 		rst_out    <= rst;
 		int_out    <= int;
-		
+		stallout   <= stall;
 		
             --END IF;
         END IF;

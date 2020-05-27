@@ -22,9 +22,9 @@ TYPE ram_type IS ARRAY(0 TO 2047) of std_logic_vector(15 DOWNTO 0);
 
 SIGNAL ram : ram_type := (
  0=> "0000000000010000",
- 1=> "0000000100000000",
- 2=> "0000011111000010",
- 3=> "0000000000000010",
+ 1=> "0000000000000000",
+ 2=> "0000000100000000",
+ 3=> "0000000000000000",
  4=> "0000011111000011",
  5=> "0000000000000011",
  6=> "0000011111000100",
@@ -50,6 +50,7 @@ PROCESS(clk) IS
 variable address: Integer;
 BEGIN
 address:= to_integer(unsigned(addressIN));
+dataout <= (others=> '0');  -- Garbage
 IF rising_edge(clk) THEN
 
   IF reset='1' THEN

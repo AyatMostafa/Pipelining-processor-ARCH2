@@ -5,7 +5,7 @@ use work.regFilePackage.all;
 
 entity DecodeStage is
 	port( IR, Imm_val : IN std_logic_vector(15 downto 0);
-	      clk, Branch, rst, interrupt,   WriteReg,enableFU, enableHU ,falseprediction,wb_excute ,IDEX_MemRead: IN std_logic;
+	      clk, Branch, rst, interrupt, WriteReg, enableFU, enableHU , falseprediction, wb_excute ,IDEX_MemRead, stallfromFetch: IN std_logic;
 	      Rwrite, Add_BR_Reg,ID_EX_Rdst,Exec_Rdst: IN std_logic_vector(2 downto 0);
 	      
 	      writeData, DataATExec: IN std_logic_vector(31 downto 0);
@@ -26,15 +26,15 @@ signal stall_hazard: std_logic;
 signal extended1, extended2, extendedIMM, R2Temp, R_br:std_logic_vector(31 downto 0);
 constant zeros: std_logic_vector(15 downto 0):="0000000000000000";
 constant ones: std_logic_vector(15 downto 0):="1111111111111111";
-signal stall_result: std_logic;
+signal stall_result, isRst, isIntr: std_logic;
 Begin
 
 Hazard_Unit : ENTITY work.Hazard_Load_case PORT MAP(enableHU, IDEX_MemRead , ID_EX_Rdst ,IR(8 downto 6) , IR(5 downto 3),stall_hazard);
 
 FileRegL : ENTITY work.RegFile PORT MAP(IR(8 downto 6), IR(5 downto 3), Add_BR_Reg, clk, WriteReg, rst, Rwrite, writeData, R1, R2Temp, R_br,RegfileOut);
-CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, clk, rst, signals2, signals);
-stall_result<=stall_hazard or (Branch and not(IR(13) and not(IR(12)) and not(IR(11)) and IR(10) and not(IR(9)))) or falseprediction; --exclude call
-LDUseStall <= stall_hazard;
+CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, clk, rst, signals2, signals, isRst, isIntr);
+stall_result<=(stall_hazard and not(isRst or isIntr or signals2(4))) or (Branch and not(IR(13) and not(IR(12)) and not(IR(11)) and IR(10) and not(IR(9)))) or falseprediction or stallfromFetch; --exclude call
+LDUseStall <= stall_hazard and not(isRst or isIntr);
 signals2L: entity work.twoInpMux generic map(12) port map (signals2, "000000000000", stall_result, controlSignals2);
 signalsL:  entity work.twoInpMux generic map(8) port map (signals,"11000000", stall_result, controlSignals);
 extended1 <= zeros & Imm_val;

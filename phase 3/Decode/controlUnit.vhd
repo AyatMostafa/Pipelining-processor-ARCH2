@@ -15,7 +15,8 @@ entity controlUnit is
 		--stall           :  out std_logic;
 		--FetchEnable     :  out std_logic :='0';
 		controlSignals2 :  out std_logic_vector(11 downto 0);-- :="000000000000";
-		controlSignals  :  out std_logic_vector(7 downto 0)
+		controlSignals  :  out std_logic_vector(7 downto 0);
+		intriptOut, rstOut : out std_logic
 	);
 end entity controlUnit;
 
@@ -25,10 +26,11 @@ architecture CUFlow of controlUnit is
         signal intript, rstSig : std_logic;
 begin
 
-  --counter: entity work.counter port map ( Clk,int,"010", intript);
+  counter: entity work.counter port map ( Clk,int,"010", intript);
   rstCounter: entity work.counter port map(Clk, rst, "010", rstSig);
   SM     : entity work.stateMachine port map ( input,Clk,rst,output);
-
+  intriptOut <=  intript; 
+  rstOut     <=  rstSig;
 	process(IfBranch, opcode, int, rst, intript, rstSig)
 	begin 
 		--if rising_edge(clk) then 
@@ -48,7 +50,7 @@ begin
 		--FetchEnable<='0';
 		if(opcode="10010") then       -- Call
 			controlSignals2(9) <= '1';
- 	 		controlSignals <= "11000000";
+ 	 		controlSignals <= "11010100";
 		elsif(output = "00") then
 			if (intript = '1') or (int ='1') or rst='1' or rstSig='1' then
 				controlSignals <= "00001000";
@@ -119,7 +121,7 @@ begin
 				controlSignals <= "01010100"; --intrupt--
 				controlSignals2(0) <= '1';
 			elsif (opcode = "10100") or (opcode = "10101") then 
-				controlSignals <= "00000000";  --ret-- rti
+				controlSignals <= "01000000";  --ret-- rti
 			end if;
 
 		elsif (output = "11") then

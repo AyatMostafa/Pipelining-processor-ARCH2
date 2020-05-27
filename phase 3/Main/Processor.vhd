@@ -12,7 +12,7 @@ End processor;
 Architecture pipeline of processor is
 -- Signals for simulation
 signal registerfile: ram_type;
-signal PC_out, SP_out: std_logic_vector(31 downto 0);
+signal Fe_PC_out, SP_out: std_logic_vector(31 downto 0);
 signal flagRegister_CNZ: std_logic_vector(2 downto 0);
 
 --signals from IF/ID buffer
@@ -21,13 +21,13 @@ signal  PC_Adder_out : std_logic_vector(31 downto 0);
 signal	IR_out, Imm_val_out : std_logic_vector(15 downto 0);
 signal	Branch_out  : std_logic;
 signal	pred_bits_out : std_logic_vector( 1 downto 0);
-signal	RESET_out, INT_out : std_logic;
+signal	RESET_out, INT_out, stall_IF_ID_Q : std_logic;
 
 --signals from ID/EX buffer
 signal controlSignals:   std_logic_vector(7 downto 0);
 signal controlSignals2:  std_logic_vector(11 downto 0);
 signal PC, PCNew, Rsrc1, Rsrc2: std_logic_vector(31 downto 0);
-signal branch, rst_ID_EX_Q, interrupt_ID_EX_Q :   std_logic;
+signal branch, rst_ID_EX_Q, interrupt_ID_EX_Q, stall_ID_EX_Q:   std_logic;
 --signal PredictionBits:   std_logic_vector(1 downto 0);
 signal codes       :   std_logic_vector(10 downto 0);
 signal Rdst_ID_EX_Q :   std_logic_vector(2 downto 0);
@@ -36,7 +36,7 @@ signal PredBits_ID_EX:  std_logic_vector(1 downto 0);
 -- Fetch Signals
 signal disable_pc : std_logic;  
 signal IR, Imm_value : std_logic_vector(15 downto 0);
-signal Fe_PC_out : std_logic_vector(31 downto 0);
+signal PC_out : std_logic_vector(31 downto 0);
 signal FE_PCAdder : std_logic_vector(31 downto 0);
 signal IsBranch : std_logic;
 signal Prediction: std_logic_vector(1 downto 0);
@@ -76,7 +76,7 @@ signal enableFU, enableHU, enableFlush: std_logic;
 
 Begin
 enableFU <= '1';
-enableHU<='0';
+enableHU<='1';
 enableFlush <='1';
 stallAll <='0';
 flushAtDec <= flushfromExec when enableFlush = '1' else '0';
@@ -91,21 +91,21 @@ FetchLabel: ENTITY work.FetchStage port map(CLK, enableHU, '0', control_Signals(
 						control_Signals(1),control_Signals(3),controlSignals(3),controlSignals(1),sigOut_EX_Mem_Q(2),
 						Rdst_ID_EX_Q,Rdest,Rdst_EX_Mem_Q,
 						falsePrediction,LDPC, FPReg, ReadDatafromMem, R_br, BR_Add_reg, NewBits, BR_Add_sig,
-					     IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction);
+					     IR, Imm_value, FE_PC_out, FE_PCAdder, IsBranch, Prediction, stall);
 
-IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, '0', control_Signals(7), FE_PC_out, FE_PCAdder, IR, Imm_value, IsBranch, Prediction, rst, Interrupt, 
-						PC_out, PC_Adder_out, IR_out, Imm_val_out, Branch_out, pred_bits_out, RESET_out, INT_out);
+IF_DEbuffer: ENTITY work.IF_ID_BUFFER port map(CLK, En_IF_ID, '0', control_Signals(7), FE_PC_out, FE_PCAdder, IR, Imm_value, IsBranch, Prediction, rst, Interrupt, stall,
+						PC_out, PC_Adder_out, IR_out, Imm_val_out, Branch_out, pred_bits_out, RESET_out, INT_out, stall_IF_ID_Q);
 
-DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, enableFU, enableHU, flushAtDec,sigOut_EX_Mem_Q(1),controlSignals(3),      
+DecodeLabel: entity work.DecodeStage port map(IR_out, Imm_val_out, clk, Branch_out, RESET_out, INT_out, WriteBack, enableFU, enableHU, flushAtDec,sigOut_EX_Mem_Q(1),controlSignals(3), stall_IF_ID_Q,      
 						Rdst_Mem_WB_Q , IR(8 downto 6),Rdst_ID_EX_Q,Rdst_EX_Mem_Q,
 						WriteBkReg, ALUout_Q, R1, R2, R_br, control_Signals2, control_Signals, Rdest, LDUseStall, registerfile);
 ID_EX_buffer:entity work.ID_EX_BUFFER port map(clk, En_ID_EX_buffer, RESET_out, INT_out, IR_out(13 downto 3), PC_out, PC_Adder_out, R1, R2, 
-						control_Signals, control_Signals2, Rdest, Branch_out, pred_bits_out, codes, PC, PCNew, Rsrc1, Rsrc2, controlSignals,
-						  controlSignals2, Rdst_ID_EX_Q, branch,  rst_ID_EX_Q, interrupt_ID_EX_Q, PredBits_ID_EX);
+						control_Signals, control_Signals2, Rdest, Branch_out, stall_IF_ID_Q, pred_bits_out, codes, PC, PCNew, Rsrc1, Rsrc2, controlSignals,
+						  controlSignals2, Rdst_ID_EX_Q, branch,  rst_ID_EX_Q, interrupt_ID_EX_Q, stall_ID_EX_Q, PredBits_ID_EX);
 
 ExecuteLabel:  entity work.execute port map(controlSignals(4 downto 0), controlSIgnals2, PC, PCNew, Rsrc1, Rsrc2, inPort, ReadDatafromMem, clk, rst_ID_EX_Q, interrupt_ID_EX_Q, 
 					    branch, LDflags, PredBits_ID_EX, codes(10 downto 6), codes(5 downto 0), Rdst_EX_Mem_Q, Rdst_Mem_WB_Q, WriteBack, sigOut_EX_Mem_Q(1),
-						 enableFU, ALUout_Q, WriteBkReg, NewBits, sigOut_EX_Mem_D, OutPort, ALUout, WriteData, FPreg, BR_Add_reg, BR_Add_sig, falsePrediction,
+						 enableFU, stall_ID_EX_Q, ALUout_Q, WriteBkReg, NewBits, sigOut_EX_Mem_D, OutPort, ALUout, WriteData, FPreg, BR_Add_reg, BR_Add_sig, falsePrediction,
 							flushfromExec, SP_out, flagRegister_CNZ); 
 EX_MemBuffer:  entity work.EX_Mem_Buffer port map(clk, stallAll, rst_intr_ID_EX_Q, sigOut_EX_Mem_D, ALUout, WriteData, Rdst_ID_EX_Q, rst_intr_EX_Mem_Q,
 						  sigOut_EX_Mem_Q, ALUout_Q, WriteData_Q, Rdst_EX_Mem_Q);

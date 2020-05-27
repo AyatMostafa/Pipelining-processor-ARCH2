@@ -81,12 +81,13 @@ ARCHITECTURE BRhandling OF BRexeceution_Prediction IS
 Begin
 	F(1) <= (b(1) and b(0)) or (b(1) and ZeroFlag) or (b(0) and ZeroFlag);
 	F(0) <= (b(1) and not(b(0))) or (b(1) and ZeroFlag) or (not(b(0)) and ZeroFlag);
-	FP   <= branch and((b(1) and not(ZeroFlag)) or (b(0) and ZeroFlag));
+	FP   <= branch and((b(1) and not(ZeroFlag)) or (not(b(1)) and ZeroFlag));
 End ARCHITECTURE;
 
 --Execute Stage
 library ieee;
 USE ieee.std_logic_1164.ALL;
+use IEEE.std_logic_arith.all;
 
 Entity execute is
 	port( ControlSignals: IN std_logic_vector(4 downto 0);
@@ -98,7 +99,7 @@ Entity execute is
 	      OpCode:          IN std_logic_vector(4 downto 0);
 	      RADD:            IN std_logic_vector(5 downto 0);
 	      Rdst_exec, Rdst_mem : in STD_LOGIC_VECTOR (2 downto 0);
-              wb_mem, wb_exec, enableFU   : in STD_LOGIC;
+              wb_mem, wb_exec, enableFU, stalled   : in STD_LOGIC;
 	      Data_ex, Data_mem:   IN std_logic_vector(31 downto 0);
 	      NewBits       :  OUT std_logic_vector(1 downto 0);
 	      SignalsOUT    :  OUT std_logic_vector(7 downto 0);
@@ -112,13 +113,13 @@ ARCHITECTURE ExecStage OF execute IS
 signal CCR: std_logic_vector(2 downto 0);
 signal ZFlag: std_logic_vector(0 downto 0);
 signal ALUResult, R1, SPMain, SPTemp: std_logic_vector(31 downto 0);
-signal falseprediction, ifJZSig: std_logic;
+signal falseprediction, ifJZSig, flushSigDelayed, flushSig: std_logic;
 
 --controlSignals(4-SP,3-MR,2-MW,1-RW,0-memtoreg)
 --controlSignals2(11-int,10-push,9-(call),8-in,7-out,6-ret,5-ints2,4-rti,3-swap,2-fromEA,1-EaH,0-ints3)
 --Lev2CTRLsignals(5>EAH, 4>fromEA, 3>we, 2>re, 1>WB, 0>fromMemtoReg)
 signal SWAP, SPsignal, Insignal, oldSP, IntPC, intFlag, Call, OUTSIgnal, push, rti,ret,EAH,fromEA,we,re,WB,fromMemToReg, FalsePredSignal: std_logic;
-signal flags32, Rsrc1, Rsrc2:  std_logic_vector(31 downto 0);
+signal flags32, Rsrc1, Rsrc2, PCMinus1:  std_logic_vector(31 downto 0);
 signal mx1, mx2: std_logic_vector(1 downto 0);
 constant zero: std_logic_vector(28 downto 0):="00000000000000000000000000000";
 begin
@@ -128,15 +129,16 @@ OUTSIgnal<=controlSignals2(7); push<=controlSignals2(10); rti<=controlSignals2(4
 ret<=controlSignals2(6); EAH<=controlSignals2(1); fromEA<=controlSignals2(2); we<=controlSignals(2);
 re<=controlSignals(3); WB<=controlSignals(1); fromMemToReg<=controlSignals(0);
 
+PCMinus1 <= unsigend(PC) - 1;
 flags32<=CCR&Zero;
-oldSP <= push or Call or IntPC or intFlag;
-ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, Rst, fromMem(31 downto 29), ALUResult, CCR);
+oldSP <= (push or Call or IntPC or intFlag) and not(stalled);
+ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, Rst, Interrupt, flushSigDelayed, fromMem(31 downto 29), ALUResult, CCR);
 SP_Label : entity work.SP port map(ALUResult, SPsignal, clk, SPMain, rst);
 SP_Temp:   entity work.SP port map(SPMain,'1',clk, SPTemp, rst);
 R1Mux:     entity work.twoInpMux port map(Rsrc1, SPMain, SPsignal, R1);
 --ALUoutMux: entity work.threeInpMux port map(ALUResult, InputPORT, SPTemp, Insignal, oldSP, ALUoutput);
 ALUoutMux: entity work.FourInpMux port map(InputPORT, SPTemp, SPMain, ALUResult, Insignal, oldSP, SPsignal, ALUoutput);
-DataWrtmux:entity work.FourInpMux port map(PC, PCNew,flags32, Rsrc1, IntPC, Call, intFlag, WriteData);
+DataWrtmux:entity work.FourInpMux port map(PCMinus1, PCNew,flags32, Rsrc1, IntPC, Call, intFlag, WriteData);
 BRanchCirc:entity work.BRexeceution_Prediction port map(branch, Zflag(0), predictionBits, NewBits, falseprediction); 
 FPRdestlBL:entity work.twoInpMux port map(Rsrc1, PCNew, predictionBits(1), FPReg);
 SignalsOUT <= rti&ret&EAH&fromEA&we&re&WB&fromMemToReg;
@@ -148,11 +150,16 @@ ifJZ <= ifJZSig;
 Sp<=SPMain;
 FR<=CCR;
 ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), '1', clk, Zflag, rst); 
-flushCounter: entity work.counter port map (Clk,FalsePredSignal,"001", flush);
+flushCounter: entity work.counter port map (Clk,FalsePredSignal,"001", flushSig);
+flush <= flushSig;
 process(OUTSIgnal, Rsrc1)
 begin
 	if (OUTSIgnal = '1') then OutputPort <= Rsrc1; end if;
 end process;
+process(flushSig, clk)
+begin
+	if flushSig = '1' and falling_edge(clk) then flushsigDelayed <= '1'; else flushsigDelayed <= '0'; end if;
+end process; 
 -- Forwarding Unit
 FULabel: entity work.EFU port map (clk,enableFU, SWAP, RADD(5 downto 3), RADD(2 downto 0), Rdst_exec, Rdst_mem, wb_mem, wb_exec, mx1, mx2);
 R1FUMux: entity work.three_input_mux port map(Rsrcc1, Data_mem, Data_ex, mx1, Rsrc1);
