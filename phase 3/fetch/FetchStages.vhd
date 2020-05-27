@@ -22,8 +22,8 @@ entity FetchStage is
 	  PC : Out std_logic_vector(31 downto 0);
 	  PCAdder : Out std_logic_vector(31 downto 0);
 	  IsBranch : out std_logic;
-	  Prediction: out std_logic_vector(1 downto 0)
-	  --stall: out std_logic
+	  Prediction: out std_logic_vector(1 downto 0);
+	  stall: out std_logic
 	);
 end FetchStage;
 
@@ -33,7 +33,7 @@ end FetchStage;
 architecture arch_fetch of FetchStage is
 signal PC_normal, PC_out_MUX, PC_out: std_logic_vector(31 downto 0);
 signal selector : std_logic_vector(1 downto 0);
-signal istaken, ifJz, stall: std_logic; -- in all cases of branching
+signal istaken, ifJz: std_logic; -- in all cases of branching
 signal stall_hazard , Enable : std_logic;
 signal IR_out : std_logic_vector(15 downto 0);
 
@@ -52,9 +52,9 @@ begin
 
 	control_branch : ENTITY work.ControlBranch Port Map(IR_out, Clk, istaken, ifJz);
 	
-	Branching_Data_hazard : ENTITY work.BranchingDataDetectionHazard Port Map(enable_in, IR_out(13 downto 9), IR_out(2 downto 0),  Decode_WB , Decode_MR ,ID_EX_MR ,ID_EX_WB ,EX_Mem_MR ,ID_EX_Rdst ,IF_ID_Rdst ,EX_Mem_Rdst,stall_hazard);
+	Branching_Data_hazard : ENTITY work.BranchingDataDetectionHazard Port Map(enable_in, istaken, IR_out(8 downto 6),  Decode_WB , Decode_MR ,ID_EX_MR ,ID_EX_WB ,EX_Mem_MR ,ID_EX_Rdst ,IF_ID_Rdst ,EX_Mem_Rdst,stall_hazard);
 	
-	stall_hazard<='0';
+	--stall_hazard<='0';
 	IR <= IR_out;
 	Imm_value <= IR_out;
 	PC <= PC_out;
