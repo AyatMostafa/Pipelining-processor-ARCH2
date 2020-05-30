@@ -28,7 +28,9 @@ begin
 
   counter: entity work.counter port map ( Clk,int,"010", intript);
   rstCounter: entity work.counter port map(Clk, rst, "010", rstSig);
+
   SM     : entity work.stateMachine port map ( input,Clk,rst,stall,output);
+
   intriptOut <=  intript; 
   rstOut     <=  rstSig;
 	process(IfBranch, opcode, int, rst, intript, rstSig)
