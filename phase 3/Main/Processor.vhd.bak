@@ -12,7 +12,7 @@ End processor;
 Architecture pipeline of processor is
 -- Signals for simulation
 signal registerfile: ram_type;
-signal PC_out, SP_out: std_logic_vector(31 downto 0);
+signal Fe_PC_out, SP_out: std_logic_vector(31 downto 0);
 signal flagRegister_CNZ: std_logic_vector(2 downto 0);
 
 --signals from IF/ID buffer
@@ -36,7 +36,7 @@ signal PredBits_ID_EX:  std_logic_vector(1 downto 0);
 -- Fetch Signals
 signal disable_pc : std_logic;  
 signal IR, Imm_value : std_logic_vector(15 downto 0);
-signal Fe_PC_out : std_logic_vector(31 downto 0);
+signal PC_out : std_logic_vector(31 downto 0);
 signal FE_PCAdder : std_logic_vector(31 downto 0);
 signal IsBranch : std_logic;
 signal Prediction: std_logic_vector(1 downto 0);
@@ -76,7 +76,7 @@ signal enableFU, enableHU, enableFlush: std_logic;
 
 Begin
 enableFU <= '1';
-enableHU<='1';
+enableHU<='0';
 enableFlush <='1';
 stallAll <='0';
 flushAtDec <= flushfromExec when enableFlush = '1' else '0';
