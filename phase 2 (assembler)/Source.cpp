@@ -42,7 +42,7 @@ void assign_opcodes_and_reg() {
 	//memory operations
 	opcodes["PUSH"] = "0011000";
 	opcodes["POP"] = "0011001000000";
-	opcodes["LDM"] = "0011100000000";
+	opcodes["LDM"] = "0011100000101";
 	opcodes["LDD"] = "0011101000000";
 	opcodes["STD"] = "0011110";
 	//------------------------------
@@ -848,17 +848,21 @@ void process_line(string line) {
 		}
 		if (digit.length() > 0) {
 			if (address == 0) {
-				binary_code[address++] = opcodes["LDM"] + registers["R0"];
+				/*binary_code[address++] = opcodes["LDM"] + registers["R0"];
 				binary_code[address++] = bitset<16>(hex2dec(digit)).to_string();
 				binary_code[address++] = opcodes["STD"] + registers["R0"] + "000000";
+				binary_code[address++] = "0000000000000000";*/
+				binary_code[address++]= bitset<16>(hex2dec(digit)).to_string();
 				binary_code[address++] = "0000000000000000";
 			}
 			else if (address == 2) {
-				address += 2;
-				binary_code[address++] = opcodes["LDM"] + registers["R0"];
+				//address += 2;
+				/*binary_code[address++] = opcodes["LDM"] + registers["R0"];
 				binary_code[address++] = bitset<16>(hex2dec(digit)).to_string();
 				binary_code[address++] = opcodes["STD"] + registers["R0"] + "000000";
-				binary_code[address++] = "0000000000000010";
+				binary_code[address++] = "0000000000000010";*/
+				binary_code[address++] = bitset<16>(hex2dec(digit)).to_string();
+				binary_code[address++] = "0000000000000000";
 			}
 			else {
 				binary_code[address++] = bitset<16>(hex2dec(digit)).to_string();
@@ -923,9 +927,11 @@ void write_assembled_file() {
 	if (file.is_open()) {
 		for (int i = 0;i < address;++i) {
 			if (!(binary_code[i].size() == 0))
-				file << i << "=> \"" << binary_code[i] << "\" ," << endl;
+				file << binary_code[i]  << endl;
+				//file << i << "=> \"" << binary_code[i] << "\" ," << endl;
 			else
-				file << i << "=> \"" << opcodes["NOP"] << "\" ," << endl;
+				file << opcodes["NOP"]  << endl;
+				//file << i << "=> \"" << opcodes["NOP"] << "\" ," << endl;
 		}
 	}
 	if (address != 4095) {
