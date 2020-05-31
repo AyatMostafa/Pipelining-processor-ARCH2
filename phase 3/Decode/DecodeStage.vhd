@@ -26,15 +26,20 @@ signal stall_hazard: std_logic;
 signal extended1, extended2, extendedIMM, R2Temp, R_br:std_logic_vector(31 downto 0);
 constant zeros: std_logic_vector(15 downto 0):="0000000000000000";
 constant ones: std_logic_vector(15 downto 0):="1111111111111111";
-signal stall_result, isRst, isIntr: std_logic;
+
+signal stall_result, isRst, isIntr, finalStall: std_logic;
+
 Begin
 
-Hazard_Unit : ENTITY work.Hazard_Load_case PORT MAP(enableHU, IDEX_MemRead , ID_EX_Rdst ,IR(8 downto 6) , IR(5 downto 3),stall_hazard);
+Hazard_Unit : ENTITY work.Hazard_Load_case PORT MAP('0', IDEX_MemRead , ID_EX_Rdst ,IR(8 downto 6) , IR(5 downto 3),stall_hazard);
 
 FileRegL : ENTITY work.RegFile PORT MAP(IR(8 downto 6), IR(5 downto 3), Add_BR_Reg, clk, WriteReg, rst, Rwrite, writeData, R1, R2Temp, R_br,RegfileOut);
-CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, clk, rst, signals2, signals, isRst, isIntr);
-stall_result<=(stall_hazard and not(isRst or isIntr or signals2(4))) or (Branch and not(IR(13) and not(IR(12)) and not(IR(11)) and IR(10) and not(IR(9)))) or falseprediction or stallfromFetch; --exclude call
-LDUseStall <= stall_hazard and not(isRst or isIntr);
+
+CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, clk, rst, finalStall, signals2, signals, isRst, isIntr);
+stall_result<=finalStall or (Branch and not(IR(13) and not(IR(12)) and not(IR(11)) and IR(10) and not(IR(9)))) or falseprediction or stallfromFetch; --exclude call
+finalStall <= stall_hazard and not(isRst or isIntr or signals2(4));
+LDUseStall <= finalStall;
+
 signals2L: entity work.twoInpMux generic map(12) port map (signals2, "000000000000", stall_result, controlSignals2);
 signalsL:  entity work.twoInpMux generic map(8) port map (signals,"11000000", stall_result, controlSignals);
 extended1 <= zeros & Imm_val;

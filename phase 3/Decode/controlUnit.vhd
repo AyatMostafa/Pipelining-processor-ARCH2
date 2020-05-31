@@ -12,7 +12,7 @@ entity controlUnit is
 		IfBranch        :  in std_logic;
 		Clk		:  in std_logic;
 		rst		:  in std_logic;
-		--stall           :  out std_logic;
+		stall           :  in std_logic;
 		--FetchEnable     :  out std_logic :='0';
 		controlSignals2 :  out std_logic_vector(11 downto 0);-- :="000000000000";
 		controlSignals  :  out std_logic_vector(7 downto 0);
@@ -28,7 +28,9 @@ begin
 
   counter: entity work.counter port map ( Clk,int,"010", intript);
   rstCounter: entity work.counter port map(Clk, rst, "010", rstSig);
-  SM     : entity work.stateMachine port map ( input,Clk,rst,output);
+
+  SM     : entity work.stateMachine port map ( input,Clk,rst,stall,output);
+
   intriptOut <=  intript; 
   rstOut     <=  rstSig;
 	process(IfBranch, opcode, int, rst, intript, rstSig)
