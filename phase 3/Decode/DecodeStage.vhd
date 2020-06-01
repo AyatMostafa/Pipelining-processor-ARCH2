@@ -39,7 +39,7 @@ CULabel:   entity work.controlUnit port map(interrupt, IR(13 downto 9), branch, 
 stall_result<=finalStall or (Branch and not(IR(13) and not(IR(12)) and not(IR(11)) and IR(10) and not(IR(9)))) or falseprediction or stallfromFetch; --exclude call
 finalStall <= (stall_hazard and not(isRst or isIntr or signals2(4))) or stallAll;
 LDUseStall <= finalStall;
-changeSignals<= stall_result and not(isRst or isIntr or signals2(4));
+changeSignals<= stall_result and not(isRst or isIntr or signals2(4)) and not(stallAll);
 signals2L: entity work.twoInpMux generic map(12) port map (signals2, "000000000000", changeSignals, controlSignals2);
 signalsL:  entity work.twoInpMux generic map(8) port map (signals,"11000000", changeSignals, controlSignals);
 extended1 <= zeros & Imm_val;

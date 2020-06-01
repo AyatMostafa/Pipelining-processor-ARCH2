@@ -97,13 +97,13 @@ Begin
 enableFU <= '1';
 enableHU<='1';
 enableFlush <='1';
-stallAll<='0';
+--stallAll<='0';
 --process(stall8 ,stall4 , stall4Instr)
 --begin
 --if stall8 ='1' or stall4 = '1' or stall4Instr = '1' then stallAll <='1'; else stallAll <='0'; end if;
 --end process; 
 
-
+stallAll<='0';
 flushAtDec <= flushfromExec when enableFlush = '1' else '0';
 WriteBack<= WBsignals(1);
 MTReg<= WBsignals(0);

@@ -132,13 +132,14 @@ ret<=controlSignals2(6); EAH<=controlSignals2(1); fromEA<=controlSignals2(2); we
 re<=controlSignals(3); WB<=controlSignals(1); fromMemToReg<=controlSignals(0);
 
 enableSPM<= SPsignal and not(stallAll);
---enableSPT<= not(stallAll);
+enableSPT<= not(stallAll);
 PCMinus1 <= unsigned(PC) - 1;
+--PCMinus1 <= PC;
 flags32<=CCR&Zero;
 oldSP <= (push or Call or IntPC or intFlag) and not(stalled);
 ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, Rst, Interrupt, flushSigDelayed, fromMem(31 downto 29), ALUResult, CCR);
 SP_Label : entity work.SP port map(ALUResult, enableSPM, clk, SPMain, rst);
-SP_Temp:   entity work.SP port map(SPMain,'1',clk, SPTemp, rst);
+SP_Temp:   entity work.SP port map(SPMain,enableSPT,clk, SPTemp, rst);
 R1Mux:     entity work.twoInpMux port map(Rsrc1, SPMain, SPsignal, R1);
 --ALUoutMux: entity work.threeInpMux port map(ALUResult, InputPORT, SPTemp, Insignal, oldSP, ALUoutput);
 ALUoutMux: entity work.FourInpMux port map(InputPORT, SPTemp, SPMain, ALUResult, Insignal, oldSP, SPsignal, ALUoutput);
@@ -153,7 +154,7 @@ falsepredictioninBR<=FalsePredSignal;
 ifJZ <= ifJZSig;
 Sp<=SPMain;
 FR<=CCR;
-ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), '1', clk, Zflag, rst); 
+ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), enableSPT, clk, Zflag, rst); 
 flushCounter: entity work.counter port map (Clk,FalsePredSignal,"0001", flushSig);
 flush <= flushSig;
 process(OUTSIgnal, Rsrc1)

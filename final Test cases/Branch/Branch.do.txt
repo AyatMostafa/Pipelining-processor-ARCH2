@@ -6,6 +6,18 @@ force -freeze sim:/processor/rst 1 0
 run
 
 force -freeze sim:/processor/rst 0 0
+##############################For both memory cahces misses stalling
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+###############################
 run
 run
 run
@@ -22,12 +34,38 @@ run
 force -freeze sim:/processor/InPort 11111111111111111111111111111111 0
 run
 run
+##############################For both memory cahces misses stalling
+run
+run
+run
+run
+run
+###############################
 force -freeze sim:/processor/Interrupt 1 0
 run
-noforce sim:/processor/Interrupt
+force -freeze sim:/processor/Interrupt 0 0
 run
 run
 run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+################################
 run
 run
 run
@@ -53,9 +91,32 @@ run
 run
 run
 run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
 force -freeze sim:/processor/Interrupt 1 0
 run
-noforce sim:/processor/Interrupt
+force -freeze sim:/processor/Interrupt 0 0
+run
+run
+###################################
+run
+run
+run
+run
 run
 run
 run

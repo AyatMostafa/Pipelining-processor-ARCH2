@@ -121,12 +121,12 @@ Begin
 	end process;
 	output <= result;
 	-- CCR (N & Z) handling
-	process (result, opCode, RST, noChgFlags)
+	process (result, opCode, RST, noChgFlags, flags)
 	variable operation: unsigned (4 downto 0);
 	constant Zero: std_logic_vector(31 downto 0) := "00000000000000000000000000000000";
 	begin
 		operation := unsigned(opCode);
-		if RST = '1' then CCRValue(1 downto 0) <= "00"; elsif fromMem ='1' then CCRValue(1 downto 0) <= flags(1 downto 0); 
+		if RST = '1' then CCRValue(1 downto 0) <= "00" elsif fromMem ='1' then CCRValue(1 downto 0) <= flags(1 downto 0); 
 		elsif oPcode(4) = '0' and operation /= 8 and operation /= 12 and operation /= 13 and operation /= 6 and operation /= 7 and flushed = '0' and noChgFlags = '0'
 		then CCRValue(1) <= result(31); if result = Zero then CCRValue(0) <= '1'; else CCRValue(0) <= '0'; end if;
 		elsif operation = 16 and noChgFlags = '0' then CCRValue(0) <= '0'; 

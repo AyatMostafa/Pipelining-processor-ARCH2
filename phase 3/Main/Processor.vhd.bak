@@ -97,6 +97,7 @@ counter2: entity work.counter port map ( Clk,toInstrCach,"0011", stall4Instr);
 enableFU <= '1';
 enableHU<='1';
 enableFlush <='1';
+--stallAll<='0';
 process(stall8 ,stall4 , stall4Instr)
 begin
 if stall8 ='1' or stall4 = '1' or stall4Instr = '1' then stallAll <='1'; else stallAll <='0'; end if;

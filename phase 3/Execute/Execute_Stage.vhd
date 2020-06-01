@@ -134,6 +134,7 @@ re<=controlSignals(3); WB<=controlSignals(1); fromMemToReg<=controlSignals(0);
 enableSPM<= SPsignal and not(stallAll);
 enableSPT<= not(stallAll);
 PCMinus1 <= unsigned(PC) - 1;
+--PCMinus1 <= PC;
 flags32<=CCR&Zero;
 oldSP <= (push or Call or IntPC or intFlag) and not(stalled);
 ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, Rst, Interrupt, flushSigDelayed, fromMem(31 downto 29), ALUResult, CCR);
@@ -153,7 +154,7 @@ falsepredictioninBR<=FalsePredSignal;
 ifJZ <= ifJZSig;
 Sp<=SPMain;
 FR<=CCR;
-ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), '1', clk, Zflag, rst); 
+ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), enableSPT, clk, Zflag, rst); 
 flushCounter: entity work.counter port map (Clk,FalsePredSignal,"0001", flushSig);
 flush <= flushSig;
 process(OUTSIgnal, Rsrc1)
@@ -162,7 +163,7 @@ begin
 end process;
 process(flushSig, clk)
 begin
-	if flushSig = '1' and falling_edge(clk) then flushsigDelayed <= '1'; else flushsigDelayed <= '0'; end if;
+	if flushSig = '1' and falling_edge(clk) and stallAll = '0' then flushsigDelayed <= '1'; else flushsigDelayed <= '0'; end if;
 end process; 
 -- Forwarding Unit
 FULabel: entity work.EFU port map (clk,enableFU, SWAP, RADD(5 downto 3), RADD(2 downto 0), Rdst_exec, Rdst_mem, wb_mem, wb_exec, mx1, mx2);
