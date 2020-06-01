@@ -16,8 +16,8 @@ use work.myPackages.all;
 
 Entity Cache_DataMemory is
 	PORT (clk : IN std_logic;
-	      MR, MW, RamRead, NoWrite : IN std_logic;
-	      address : IN std_logic_vector(7 DOWNTO 0);
+	      MR, MW, RamRead, NoWrite,rst,int : IN std_logic;
+	      add : IN std_logic_vector(7 DOWNTO 0);
 	      datain : IN std_logic_vector(31 DOWNTO 0);
 	      dataout : OUT std_logic_vector(31 DOWNTO 0);
 	      blockIN: IN Block_Cache;
@@ -27,14 +27,25 @@ END Cache_DataMemory;
 ARCHITECTURE combinational OF Cache_DataMemory IS
 
 SIGNAL storage : Cache;
+signal address: std_logic_vector(7 DOWNTO 0);
 Begin
+process(rst,int,add)
+begin
+if rst = '1' then 
+address <= "00000000";
+elsif int = '1' then 
+address <= "00000010";
+else
+address <= add;
+end if;
+end process;
 blockOUT<= storage(to_integer(unsigned(address(7 downto 3))));
 process(clk)
 	variable index, displacement: Integer;
 	begin
 	index:= to_integer(unsigned(address(7 downto 3)));
 	displacement:= to_integer(unsigned(address(2 downto 0)));
-	IF rising_edge(clk) then 
+	IF falling_edge(clk) then 
 		if MW = '1' and NoWrite = '0' and RamRead = '0' THEN  
 		storage(index)(displacement)<= datain(15 downto 0); storage(index)(displacement+1)<= datain(31 downto 16);
 		elsif  RamRead = '1' then 
@@ -48,7 +59,7 @@ process(MR, storage, address)
 	begin
 	index:= to_integer(unsigned(address(7 downto 3)));
 	displacement:= to_integer(unsigned(address(2 downto 0)));
-	if MR = '1' then dataout <= storage(index)(displacement+1)&storage(index)(displacement);
+	if MR = '1' or rst='1' or int='1' then dataout <= storage(index)(displacement+1)&storage(index)(displacement);
 	else dataout <=(others=>'0');
 	end if;
 end process;
@@ -83,7 +94,7 @@ process(clk)
 	index:= to_integer(unsigned(addressWrite(7 downto 3)));
 	displacement:=to_integer(unsigned(addressWrite(2 downto 0)));
 	indexread:= to_integer(unsigned(address(7 downto 3)));
-	IF rising_edge(clk) then 
+	IF falling_edge(clk) then 
 		if MW = '1' and NoWrite = '0' and RamRead = '0' THEN  
 		storage(index)(displacement)(15 downto 14)<= datain;
 		elsif  RamRead = '1' then 
@@ -109,8 +120,8 @@ use ieee.numeric_std.all;
 use work.myPackages.all;
 
 Entity Cache_Controller is
-	PORT (clk, rst, MR, MW, MWInstr: IN std_logic;
-	      address, addressInstr, addressInstrWrite : IN std_logic_vector(10 DOWNTO 3);
+	PORT (clk, Vrst, rst, MR, MW, MWInstr,int: IN std_logic;
+	      add, addressInstr, addressInstrWrite : IN std_logic_vector(10 DOWNTO 3);
 	      AddressToRam: OUT std_logic_vector(10 DOWNTO 0);
 	      MemW, CacheW, CacheWInstr, ignore: OUT std_logic);
 END Cache_Controller;
@@ -122,6 +133,7 @@ signal ValidArray, dirtyArray, ValidArrInstr : std_logic_vector(31 downto 0);
 signal TagWrite, dirtyWrite, TagWriteInstr: std_logic;
 signal index, indexInstr, indexInstrWrite: Integer;
 signal tag,tagInstr, tagInstrWrite : std_logic_vector(2 downto 0);
+signal address: std_logic_vector(10 downto 3);
 Begin
 tag<= address(10 downto 8);
 tagInstr<= addressInstr(10 downto 8);
@@ -129,14 +141,26 @@ tagInstrWrite<= addressInstrWrite(10 downto 8);
 index<= to_integer(unsigned((address(7 downto 3))));
 indexInstr<= to_integer(unsigned((addressInstr(7 downto 3))));
 indexInstrWrite<= to_integer(unsigned((addressInstrWrite(7 downto 3))));
+process(rst,int,add)
+begin
+if rst = '1' then 
+address <= "00000000";
+elsif int = '1' then 
+address <= "00000010";
+else
+address <= add;
+end if;
+end process;
 process(clk,MR, MW, address, TagArray, ValidArray, dirtyArray, rst, ValidArrInstr, TagArrinstr,addressInstr,addressInstrWrite,MWInstr)
 variable dataMissPrior: integer;
 begin
-dataMissPrior:=0
-if falling_edge(clk) then
+
+dataMissPrior:=0;
+--CacheW<='0'; TagWrite<='0';
+if rising_edge(clk) then
 	MemW<='0'; CacheW<='0'; TagWrite<='0'; dirtyWrite <= '0'; CacheWInstr <='0'; TagWriteInstr<='0'; ignore<='0';
-	if MR ='1' or MW = '1' then 
-		   if (ValidArray(index) = '0' or TagArray(index) /= tag) then   dataMissPrior :=1   -- Miss
+	if MR ='1' or MW = '1' or rst='1' or int='1' then 
+		   if (ValidArray(index) = '0' or TagArray(index) /= tag) then   dataMissPrior :=1;   -- Miss
 			if dirtyArray(index) = '0' then  CacheW<= '1'; TagWrite<='1'; AddressToRam<=address(10 downto 3)&"000";
 			else MemW<= '1'; dirtyWrite<= '1'; AddressToRam<=TagArray(index)&Address(7 downto 3)&"000";
 			end if;
@@ -144,7 +168,7 @@ if falling_edge(clk) then
 	end if;
 		
 	if dataMissPrior = 0 then
-		if (ValidArrInstr(indexInstr) = '0' or TagArrinstr(indexInstr) /= tagInstr) then 
+		if (ValidArrInstr(indexInstr) = '0' or TagArrinstr(indexInstr) /= tagInstr) and addressInstr /= "UUUUUUUU" and addressInstr /= "XXXXXXXX" then 
 				CacheWInstr <='1'; TagWriteInstr<='1'; AddressToRam<=addressInstr(10 downto 3)&"000"; end if;
 		if MWInstr ='1' and (ValidArrInstr(indexInstrWrite) = '0' or TagArrinstr(indexInstrWrite) /= tagInstrWrite) then
 			ignore <='1';
@@ -157,8 +181,8 @@ end process;
 
 process (clk, rst, tagWrite, address, dirtyWrite, addressInstr,TagWriteInstr)
 	begin
-	if rst ='1' then  ValidArray<=(others=>'0'); dirtyArray<=(others=>'0'); ValidArrInstr<=(others=>'0'); end if;
-	if rising_edge(clk) then 
+	if Vrst ='1' then  ValidArray<=(others=>'0'); dirtyArray<=(others=>'0'); ValidArrInstr<=(others=>'0'); end if;
+	if falling_edge(clk) then 
 		if dirtyWrite = '1' then dirtyArray(index)<= '0'; end if; 
  
 		if MW = '1' and ValidArray(index) = '1' and TagArray(index) = tag then -- Write HIT
@@ -188,40 +212,50 @@ ARCHITECTURE main OF MainMemory IS
 TYPE ram_type IS ARRAY(0 TO 2047) of std_logic_vector(15 DOWNTO 0);
 
 SIGNAL ram : ram_type := (
- 0=> "1111100100000000",
- 1=> "1111100100000000",
- 2=> "1111100100000000",
- 3=> "0000001111000001",
- 4=> "0000000000000001",
- 5=> "0000001111000010",
- 6=> "0000000000000010",
- 7=> "0000001111000011",
- 8=> "0000000000000011",
- 9=> "0000001111000100",
- 10=> "0000000000000100",
- 11=> "0000001111000101",
- 12=> "0000000000000101",
- 13=> "1011001000000001",
- 14=> "1010101000000010",
- 15=> "1010011000000011",
- 16=> "1010010000000100",
- 17=> "1101000000000001",
- 18=> "1010000000000101",
- 19=> "1111101000000000",
- 20=> "0000000000010001",
- 21=> "1101000011110011",
- 22=> "0001000001000010",
- 23=> "1111100100000000",
- 24=> "1111101100000000",
- others=>X"0000"
-);
+0=> "0000000000010000" ,
+1=> "0000000000000000" ,
+2=> "0000000100000000" ,
+3=> "0000000000000000" ,
+4=> "0011100000000000" ,
+5=> "0000000000000000" ,
+6=> "0011110000000000" ,
+7=> "0000000000000010" ,
+8=> "0001000000000000" ,
+9=> "0001000000000000" ,
+10=> "0001000000000000" ,
+11=> "0001000000000000" ,
+12=> "0001000000000000" ,
+13=> "0001000000000000" ,
+14=> "0001000000000000" ,
+15=> "0001000000000000" ,
+16=> "0001101010000010" ,
+17=> "0001101011000011" ,
+18=> "0001101100000100" ,
+19=> "0011100000000001" ,
+20=> "0000000011110101" ,
+21=> "0011000001000000" ,
+22=> "0011000010000000" ,
+23=> "0011001000000001" ,
+24=> "0011001000000010" ,
+25=> "0011110010000000" ,
+26=> "0000001000000000" ,
+27=> "0011110001000000" ,
+28=> "0000001000000010" ,
+29=> "0011101000000011" ,
+30=> "0000001000000010" ,
+31=> "0011101000000100" ,
+32=> "0000001000000000" ,
+OTHERS=>X"0000");
+
+
+
 
 Begin
 PROCESS(clk) IS
 variable offset: Integer;
 BEGIN
 	offset:= to_integer(unsigned((address)));
-	IF rising_edge(clk) THEN
+	IF falling_edge(clk) THEN
 		IF we = '1' THEN 
 			L:for I in 0 to 7 loop
 			Li:ram(offset+I) <=  datain(I);
@@ -245,7 +279,7 @@ USE IEEE.STD_LOGIC_1164.ALL;
 use work.myPackages.all;
 
 Entity CacheSystem is
-	port(clk, rst, MR, MW, MWInstr: IN std_logic;
+	port(clk, vrst,rst, MR, MW, MWInstr,int: IN std_logic;
 	     address, addressInstr, addressInstrWrite: IN std_logic_vector(10 downto 0);
 	     datain: IN std_logic_vector(31 downto 0);
 	     PredBits: In std_logic_vector(1 downto 0);
@@ -259,9 +293,9 @@ signal RTCblock, CTRblock: block_Cache;
 signal addresstoRam: std_logic_vector(10 downto 0);
 signal toInstrCach, ignore: std_logic;
 begin
-cacheMemoryLabel: entity work.Cache_DataMemory port map(clk, MR, MW, RamToCach, CachToRam, address(7 downto 0), datain, dataout, RTCblock, CTRblock);
+cacheMemoryLabel: entity work.Cache_DataMemory port map(clk, MR, MW, RamToCach, CachToRam, rst,int,address(7 downto 0), datain, dataout, RTCblock, CTRblock);
 cacheInstrLabel: entity work.Cache_InstructionMemory port map(clk, MWInstr, toInstrCach, ignore, addressInstr(7 downto 0),addressInstrWrite(7 downto 0),PredBits, instrOut,RTCblock);
-cacheControllerLabel: entity work.Cache_Controller port map(clk, rst, MR, MW, MWInstr, address(10 downto 3), addressInstr(10 downto 3), addressInstrwrite(10 downto 3) ,addresstoRam, CachToRam, RamToCach,toInstrCach,ignore);
+cacheControllerLabel: entity work.Cache_Controller port map(clk, vrst,rst, MR, MW, MWInstr, int,address(10 downto 3), addressInstr(10 downto 3), addressInstrwrite(10 downto 3) ,addresstoRam, CachToRam, RamToCach,toInstrCach,ignore);
 MainMemoryLabel: entity work.MainMemory port map(clk, CachToRam, addresstoRam, CTRblock, RTCblock);
 end ARCHITECTURE;
 

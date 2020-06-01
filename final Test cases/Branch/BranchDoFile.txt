@@ -22,6 +22,14 @@ run
 force -freeze sim:/processor/InPort 11111111111111111111111111111111 0
 run
 run
+force -freeze sim:/processor/Interrupt 1 0
+run
+noforce sim:/processor/Interrupt
+run
+run
+run
+run
+run
 run
 run
 run

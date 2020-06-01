@@ -106,7 +106,8 @@ Entity execute is
 	      OutputPort, ALUoutput, WriteData, FPReg, R_br_fetch: out std_logic_vector(31 downto 0);
 	      ifJZ, falsepredictioninBR, flush: OUT std_logic;
 	      SP           : out std_logic_vector(31 downto 0);
-	      FR           : out std_logic_vector(2 downto 0));
+	      FR           : out std_logic_vector(2 downto 0);
+	      stallAll: IN std_logic);
 End execute;
 
 ARCHITECTURE ExecStage OF execute IS
@@ -122,6 +123,7 @@ signal SWAP, SPsignal, Insignal, oldSP, IntPC, intFlag, Call, OUTSIgnal, push, r
 signal flags32, Rsrc1, Rsrc2, PCMinus1:  std_logic_vector(31 downto 0);
 signal mx1, mx2: std_logic_vector(1 downto 0);
 constant zero: std_logic_vector(28 downto 0):="00000000000000000000000000000";
+signal enableSPM, enableSPT: std_logic;
 begin
 SWAP<= controlSignals2(3); SPsignal<=controlSignals(4); Insignal<=controlSignals2(8);
 IntPC<= controlSignals2(0); intFlag<=controlSignals2(5); Call<=controlSignals2(9);
@@ -129,12 +131,14 @@ OUTSIgnal<=controlSignals2(7); push<=controlSignals2(10); rti<=controlSignals2(4
 ret<=controlSignals2(6); EAH<=controlSignals2(1); fromEA<=controlSignals2(2); we<=controlSignals(2);
 re<=controlSignals(3); WB<=controlSignals(1); fromMemToReg<=controlSignals(0);
 
+enableSPM<= SPsignal and not(stallAll);
+enableSPT<= not(stallAll);
 PCMinus1 <= unsigned(PC) - 1;
 flags32<=CCR&Zero;
 oldSP <= (push or Call or IntPC or intFlag) and not(stalled);
 ALU_Label: entity work.ALU port map(R1, Rsrc2, OpCode, SWAP, oldSP, ccRfromMem, Rst, Interrupt, flushSigDelayed, fromMem(31 downto 29), ALUResult, CCR);
-SP_Label : entity work.SP port map(ALUResult, SPsignal, clk, SPMain, rst);
-SP_Temp:   entity work.SP port map(SPMain,'1',clk, SPTemp, rst);
+SP_Label : entity work.SP port map(ALUResult, enableSPM, clk, SPMain, rst);
+SP_Temp:   entity work.SP port map(SPMain,enableSPT,clk, SPTemp, rst);
 R1Mux:     entity work.twoInpMux port map(Rsrc1, SPMain, SPsignal, R1);
 --ALUoutMux: entity work.threeInpMux port map(ALUResult, InputPORT, SPTemp, Insignal, oldSP, ALUoutput);
 ALUoutMux: entity work.FourInpMux port map(InputPORT, SPTemp, SPMain, ALUResult, Insignal, oldSP, SPsignal, ALUoutput);
@@ -150,7 +154,7 @@ ifJZ <= ifJZSig;
 Sp<=SPMain;
 FR<=CCR;
 ZeroFlagLabel: entity work.reg32(falling) generic map(1) port map (CCR(0 downto 0), '1', clk, Zflag, rst); 
-flushCounter: entity work.counter port map (Clk,FalsePredSignal,"001", flushSig);
+flushCounter: entity work.counter port map (Clk,FalsePredSignal,"0001", flushSig);
 flush <= flushSig;
 process(OUTSIgnal, Rsrc1)
 begin

@@ -1,13 +1,26 @@
 library ieee;
 USE ieee.std_logic_1164.ALL;
 
+package myPackages is
+  type Block_Cache is array (7 downto 0) of std_logic_vector(15 downto 0);
+  type Cache is array (31 downto 0) of Block_Cache;
+  type Taglist is array (31 downto 0) of std_logic_vector(2 downto 0);
+end package;
+
+library ieee;
+USE ieee.std_logic_1164.ALL;
+use work.myPackages.all;
+
 Entity MemoryStage is 
 	port( controlSignals      :IN  std_logic_vector(7 downto 2);
 	      ALURes, writeData   :IN  std_logic_vector(31 downto 0);
 	      clk                 :IN  std_logic;
 	      RST_INT             :IN  std_logic_vector(1 downto 0);
 	      DataRead            :OUT std_logic_vector(31 downto 0);
-	      LDflags_Out, LDPC   :OUT std_logic);
+	      LDflags_Out, LDPC   :OUT std_logic;
+	      RamToCach, CachToRam:IN std_logic;
+	      RTCblock            :IN Block_Cache;
+	      CTRblock            :OUT Block_Cache);
 End MemoryStage;
 
 Architecture Mem of MemoryStage is
@@ -23,6 +36,8 @@ AddfromEA<= EATotal(10 downto 0);
 EARegLabel:    entity work.reg32(rising) generic map(4) port map(EAInp, controlSignals(5), clk, EAreg, RST_INT(1));
 addresMuxLabel:entity work.twoInpMux generic map(11) port map(ALURes(10 downto 0), AddfromEA, controlSignals(4), address); 
 RamLabel:      entity work.RamPipelined port map(clk, controlSignals(3), controlSignals(2), RST_INT(1), RST_INT(0), address, WriteData, DataRead);
+--cacheMemoryLabel: entity work.Cache_DataMemory port map(clk, controlSignals(2), controlSignals(3), RamToCach, CachToRam, rst_int(1),rst_int(0), address(7 downto 0), WriteData, DataRead, RTCblock, CTRblock);
+--cacheMemoryLabel: entity work.Cache_DataMemory port map(clk, MR, MW, RamToCach, CachToRam, rst,int,address(7 downto 0), datain, dataout, RTCblock, CTRblock);
 LDflags_Out<= controlSignals(7);
 LDPC<= controlSignals(6) or RST_INT(0) or RST_INT(1);
 End Mem;  

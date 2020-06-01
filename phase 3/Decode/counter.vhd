@@ -6,21 +6,21 @@ use ieee.std_logic_unsigned.all;
 entity counter is Port ( 
 	clk : in STD_LOGIC;
 	reset: in STD_LOGIC;  --intrupt signal
-	limit: IN std_logic_vector(2 downto 0);
+	limit: IN std_logic_vector(3 downto 0);
 	count : OUT std_logic
 	);
 end counter;
 
 architecture Behavioral of counter is
 
-signal l_count : std_logic_vector( 2 downto 0);
+signal l_count : std_logic_vector( 3 downto 0);
 begin
 process ( clk , reset, l_count )
 variable sigCame: Integer:=0;
 begin 
 
 if (reset = '1') then
-	l_count <= "000";
+	l_count <= "0000";
 	count <= '1';
 	sigCame:=1;
 elsif (rising_edge(clk)) then

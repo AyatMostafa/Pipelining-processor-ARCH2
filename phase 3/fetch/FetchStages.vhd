@@ -1,6 +1,16 @@
+library ieee;
+USE ieee.std_logic_1164.ALL;
+
+package myPackages is
+  type Block_Cache is array (7 downto 0) of std_logic_vector(15 downto 0);
+  type Cache is array (31 downto 0) of Block_Cache;
+  type Taglist is array (31 downto 0) of std_logic_vector(2 downto 0);
+end package;
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.Numeric_Std.all;
+use work.myPackages.all;
 
 entity FetchStage is
      port (
@@ -23,7 +33,9 @@ entity FetchStage is
 	  PCAdder : Out std_logic_vector(31 downto 0);
 	  IsBranch : out std_logic;
 	  Prediction: out std_logic_vector(1 downto 0);
-	  stall: out std_logic
+	  stall: out std_logic;
+	  toInstrCach, ignore: In std_logic;
+	  RTCblock: in Block_Cache
 	);
 end FetchStage;
 
@@ -49,7 +61,8 @@ begin
 	gen_sel : ENTITY work.gen_selector PORT MAP( istaken , wrong_P_signal, Mem_PC_signal, selector);
 
 	memory : ENTITY work.InstrMemory PORT MAP(PC_out, address_for_p, WE_P, CLK, new_state_p, IR_out);
-
+	--cacheInstrLabel: entity work.Cache_InstructionMemory port map(clk, WE_P, toInstrCach, ignore, PC_out(7 downto 0),address_for_p(7 downto 0),new_state_p, IR_out,RTCblock);
+	
 	control_branch : ENTITY work.ControlBranch Port Map(IR_out, Clk, istaken, ifJz);
 	
 	Branching_Data_hazard : ENTITY work.BranchingDataDetectionHazard Port Map(enable_in, istaken, IR_out(8 downto 6),  Decode_WB , Decode_MR ,ID_EX_MR ,ID_EX_WB ,EX_Mem_MR ,ID_EX_Rdst ,IF_ID_Rdst ,EX_Mem_Rdst,stall_hazard);
